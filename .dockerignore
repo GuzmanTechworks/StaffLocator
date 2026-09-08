@@ -1,0 +1,9 @@
+node_modules
+.angular
+www
+.git
+.gitignore
+server/node_modules
+server/dist
+server/.env
+*.log

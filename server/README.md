@@ -53,3 +53,15 @@ The dashboard refreshes every 10 seconds. For true push-based updates, add Socke
 ## Production notes
 
 User and location administration is protected by the NestJS administrator guard. Keep the API behind your trusted network and use HTTPS when it is exposed beyond the LAN.
+
+## Docker deployment
+
+From the repository root on the VPS, make sure `server/.env` contains the production `DATABASE_URL`, a strong `JWT_SECRET`, and `PORT=3000`. Then run:
+
+```bash
+docker compose up -d --build
+docker compose ps
+curl http://localhost:8080/api/health
+```
+
+The Angular app is served at `http://<vps-address>:8080`. Nginx serves the SPA and forwards `/api/*` to the NestJS container. The API container is not published directly to the host. Database schema migrations are not run automatically; apply the Prisma migration procedure above before starting the containers when migrations are available.
