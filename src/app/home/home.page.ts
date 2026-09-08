@@ -19,7 +19,9 @@ export class HomePage {
   isManualDestination = false;
   manualDestination = '';
   locationSearch = '';
+  timeoutDate = this.currentDateValue();
   timeoutTime = this.currentTimeValue();
+  timeinDate = this.currentDateValue();
   timeinTime = this.currentTimeValue();
   purpose = '';
   newFirstName = '';
@@ -109,9 +111,11 @@ export class HomePage {
     }
   }
 
+  private currentDateValue() { return new Date().toISOString().slice(0, 10); }
+
   private currentTimeValue() { return new Date().toTimeString().slice(0, 5); }
 
-  private asIsoTime(value: string) { return new Date(`${new Date().toISOString().slice(0, 10)}T${value}`).toISOString(); }
+  private asIsoTime(date: string, time: string) { return new Date(`${date}T${time}`).toISOString(); }
 
   logout() { this.staffLocator.session = null; this.dashboard = { users: [], locations: [], activeVisits: [], history: [] }; }
 
@@ -210,14 +214,14 @@ export class HomePage {
 
   timeOut() {
     if (!this.session || !this.destination.trim() || !this.purpose.trim()) return;
-    this.staffLocator.timeOut(this.session.user.id, this.selectedCompanionIds, this.selectedLocationIds[0] ?? null, this.destination, this.purpose, this.asIsoTime(this.timeoutTime)).subscribe({
+    this.staffLocator.timeOut(this.session.user.id, this.selectedCompanionIds, this.selectedLocationIds[0] ?? null, this.destination, this.purpose, this.asIsoTime(this.timeoutDate, this.timeoutTime)).subscribe({
       next: () => { this.message = 'Staff member timed out.'; this.manualDestination = ''; this.purpose = ''; this.selectedLocationIds = []; this.selectedCompanionIds = []; this.isManualDestination = false; this.refresh(); },
       error: (response) => { this.error = response.error?.message ?? 'Unable to time out staff member.'; },
     });
   }
 
   timeIn(visit: ActiveVisit) {
-    this.staffLocator.timeIn(visit.id, this.asIsoTime(this.timeinTime)).subscribe({
+    this.staffLocator.timeIn(visit.id, this.asIsoTime(this.timeinDate, this.timeinTime)).subscribe({
       next: () => { this.message = `${visit.user.username} is back in the office.`; this.refresh(); },
       error: () => { this.error = 'Unable to time in staff member.'; },
     });
@@ -225,7 +229,7 @@ export class HomePage {
 
   timeInSelected() {
     this.selectedReturnVisitIds.forEach((visitId) => {
-      this.staffLocator.timeIn(visitId, this.asIsoTime(this.timeinTime)).subscribe({ next: () => this.refresh() });
+      this.staffLocator.timeIn(visitId, this.asIsoTime(this.timeinDate, this.timeinTime)).subscribe({ next: () => this.refresh() });
     });
     this.selectedReturnVisitIds = [];
   }
