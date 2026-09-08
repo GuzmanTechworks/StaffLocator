@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { ChangeDetectorRef } from '@angular/core';
+import { IonInput } from '@ionic/angular';
 import { interval } from 'rxjs';
-import { ActiveVisit, DashboardData, StaffLocatorService } from '../core/staff-locator.service';
+import { ActiveVisit, DashboardData, DashboardEvent, StaffLocatorService } from '../core/staff-locator.service';
 
 @Component({
   selector: 'app-home',
@@ -25,6 +26,7 @@ export class HomePage {
   error = '';
   currentTime = this.formatCurrentTime();
   isDarkMode = localStorage.getItem('staff-locator-theme') === 'dark';
+  @ViewChild('manualDestinationInput') private manualDestinationInput?: IonInput;
   private chimePromise: Promise<void> = Promise.resolve();
 
   constructor(private readonly staffLocator: StaffLocatorService, private readonly changeDetector: ChangeDetectorRef) {
@@ -64,6 +66,9 @@ export class HomePage {
     this.selectedLocationId = typeof locationId === 'number' ? locationId : null;
     const location = this.dashboard.locations.find((item) => item.id === this.selectedLocationId);
     this.destination = location?.name ?? '';
+    if (this.isManualDestination) {
+      window.setTimeout(() => void this.manualDestinationInput?.setFocus());
+    }
   }
 
   logout() { this.staffLocator.session = null; this.dashboard = { users: [], locations: [], activeVisits: [], history: [] }; }
@@ -71,7 +76,7 @@ export class HomePage {
   ionViewDidEnter() {
     this.loadDashboard();
     this.staffLocator.dashboardEvents().subscribe({
-      next: () => this.refresh(),
+      next: (event) => { this.refresh(); void this.announceDashboardEvent(event); },
       error: () => { this.error = 'Live updates disconnected. Refresh the page to reconnect.'; },
     });
   }
@@ -145,15 +150,14 @@ export class HomePage {
     speech.speak(utterance);
   }
 
-  private async announceTimeout(destination: string, purpose: string) {
-    const announcement = `${this.currentUsername} timed out at ${this.formatAnnouncementTime()} going to ${destination} for ${purpose}.`;
-    await this.speakAnnouncement(announcement);
-  }
-
-  private async announceTimeIn(visit: ActiveVisit) {
-    const name = `${visit.user.firstName} ${visit.user.lastName}`.trim() || visit.user.username;
-    const announcement = `${name} timed in at ${this.formatAnnouncementTime()}, returned from ${visit.destination} for ${visit.purpose}.`;
-    await this.speakAnnouncement(announcement);
+  private async announceDashboardEvent(event: DashboardEvent) {
+    const name = `${event.user.firstName} ${event.user.lastName}`.trim() || event.user.username;
+    const action = event.type === 'timeout' ? 'timed out' : 'timed in';
+    const movement = event.type === 'timeout'
+      ? `going to ${event.destination} for ${event.purpose}`
+      : `returned from ${event.destination} for ${event.purpose}`;
+    this.chimePromise = this.playAnnouncementChime();
+    await this.speakAnnouncement(`${name} ${action} at ${this.formatAnnouncementTime()}, ${movement}.`);
   }
 
   private loadDashboard() {
@@ -165,19 +169,15 @@ export class HomePage {
 
   timeOut() {
     if (!this.session || !this.destination.trim() || !this.purpose.trim()) return;
-    const destination = this.destination.trim();
-    const purpose = this.purpose.trim();
-    this.chimePromise = this.playAnnouncementChime();
     this.staffLocator.timeOut(this.session.user.id, this.selectedLocationId, this.destination, this.purpose).subscribe({
-      next: () => { void this.announceTimeout(destination, purpose); this.message = 'Staff member timed out.'; this.destination = ''; this.purpose = ''; this.selectedLocationId = null; this.isManualDestination = false; this.refresh(); },
+      next: () => { this.message = 'Staff member timed out.'; this.destination = ''; this.purpose = ''; this.selectedLocationId = null; this.isManualDestination = false; this.refresh(); },
       error: (response) => { this.error = response.error?.message ?? 'Unable to time out staff member.'; },
     });
   }
 
   timeIn(visit: ActiveVisit) {
-    this.chimePromise = this.playAnnouncementChime();
     this.staffLocator.timeIn(visit.id).subscribe({
-      next: () => { void this.announceTimeIn(visit); this.message = `${visit.user.username} is back in the office.`; this.refresh(); },
+      next: () => { this.message = `${visit.user.username} is back in the office.`; this.refresh(); },
       error: () => { this.error = 'Unable to time in staff member.'; },
     });
   }

@@ -24,8 +24,8 @@
         <span>currently out</span>
       </div>
     </section>
-    <p class="notice success" *ngIf="message">{{ message }}</p>
-    <p class="notice danger" *ngIf="error">{{ error }}</p>
+    <!-- <p class="notice success" *ngIf="message">{{ message }}</p>
+    <p class="notice danger" *ngIf="error">{{ error }}</p> -->
     <section class="action-panel" *ngIf="session; else signInPrompt">
       <div class="section-heading"><div>
         <p class="eyebrow">QUICK ACTION</p>
@@ -34,8 +34,7 @@
       <span class="step">01</span>
     </div>
     <div class="action-grid">
-      <ion-item lines="none"><ion-label position="stacked">Staff member</ion-label><ion-input [value]="currentUsername" readonly></ion-input></ion-item>
-      <ion-item lines="none"><ion-label position="stacked">Going to</ion-label><ion-select [value]="isManualDestination ? 'manual' : selectedLocationId" (ionChange)="chooseLocation($event.detail.value)" placeholder="--Choose Destination--"><ion-select-option value="manual">Type manually</ion-select-option><ion-select-option *ngFor="let location of sortedLocations" [value]="location.id">{{ location.name }}</ion-select-option></ion-select><ion-input *ngIf="isManualDestination" [(ngModel)]="destination" name="destination" placeholder="Type destination"></ion-input></ion-item>
+      <ion-item lines="none"><ion-label position="stacked">Going to</ion-label><ion-select [value]="isManualDestination ? 'manual' : selectedLocationId" (ionChange)="chooseLocation($event.detail.value)" placeholder="--Choose Destination--"><ion-select-option value="manual">Type manually</ion-select-option><ion-select-option *ngFor="let location of sortedLocations" [value]="location.id">{{ location.name }}</ion-select-option></ion-select><ion-input #manualDestinationInput *ngIf="isManualDestination" [(ngModel)]="destination" name="destination" placeholder="Type destination"></ion-input></ion-item>
       <ion-item lines="none"><ion-label position="stacked">Purpose</ion-label><ion-input [(ngModel)]="purpose" name="purpose" placeholder="Reason for leaving"></ion-input></ion-item>
       <ion-button class="timeout-button" (click)="timeOut()" [disabled]="!destination.trim() || !purpose.trim()"><ion-icon name="log-out-outline" slot="start"></ion-icon>Time out</ion-button></div></section>
     <ng-template #signInPrompt><section class="signin-prompt"><div><p class="eyebrow">RECORD A MOVEMENT</p><h3>Going somewhere?</h3><p class="subtle">Sign in to time out or time in a staff member.</p></div><ion-button fill="outline" routerLink="/sign-in"><ion-icon name="log-in-outline" slot="start"></ion-icon>Sign in</ion-button></section></ng-template>

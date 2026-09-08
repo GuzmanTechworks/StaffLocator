@@ -16,6 +16,12 @@ export interface ActiveVisit {
 }
 export interface DashboardData { users: StaffUser[]; locations: Location[]; activeVisits: ActiveVisit[]; history: ActiveVisit[]; }
 export interface Session { accessToken: string; user: StaffUser; }
+export interface DashboardEvent {
+  type: 'timeout' | 'timein';
+  user: Pick<StaffUser, 'firstName' | 'lastName' | 'username'>;
+  destination: string;
+  purpose: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class StaffLocatorService {
@@ -42,10 +48,10 @@ export class StaffLocatorService {
   }
 
   dashboard(): Observable<DashboardData> { return this.http.get<DashboardData>(`${this.apiUrl}/dashboard`, this.options()); }
-  dashboardEvents(): Observable<void> {
-    return new Observable<void>((subscriber) => {
+  dashboardEvents(): Observable<DashboardEvent> {
+    return new Observable<DashboardEvent>((subscriber) => {
       const events = new EventSource(`${this.apiUrl}/dashboard/events`);
-      events.onmessage = () => subscriber.next();
+      events.onmessage = (event) => subscriber.next(JSON.parse(event.data) as DashboardEvent);
       events.onerror = (error) => subscriber.error(error);
       return () => events.close();
     });

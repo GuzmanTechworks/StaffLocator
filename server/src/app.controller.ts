@@ -1,6 +1,6 @@
 import { Body, Controller, Get, MessageEvent, Param, ParseIntPipe, Patch, Post, Sse, UseGuards } from '@nestjs/common';
 import { Observable, map } from 'rxjs';
-import { AppService } from './app.service';
+import { AppService, DashboardEvent } from './app.service';
 import { AdminGuard } from './admin.guard';
 import { AuthGuard } from './auth.guard';
 
@@ -22,7 +22,7 @@ export class AppController {
 
   @Sse('dashboard/events')
   dashboardEvents(): Observable<MessageEvent> {
-    return this.appService.dashboardEvents.pipe(map(() => ({ data: { changed: true } })));
+    return this.appService.dashboardEvents.pipe(map((event: DashboardEvent) => ({ data: event })));
   }
 
   @Post('users')

@@ -4,9 +4,16 @@ import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from './prisma.service';
 import { Subject } from 'rxjs';
 
+export type DashboardEvent = {
+  type: 'timeout' | 'timein';
+  user: { firstName: string; lastName: string; username: string };
+  destination: string;
+  purpose: string;
+};
+
 @Injectable()
 export class AppService {
-  readonly dashboardEvents = new Subject<void>();
+  readonly dashboardEvents = new Subject<DashboardEvent>();
 
   constructor(private readonly prisma: PrismaService, private readonly jwt: JwtService) {}
 
@@ -63,7 +70,12 @@ export class AppService {
     if (locationId && !location) throw new NotFoundException('Location not found.');
     if (openVisit) throw new BadRequestException('This user is already timed out.');
     const visit = await this.prisma.visit.create({ data: { userId, locationId, destination: destination.trim(), purpose: purpose.trim() }, include: { user: true, location: true } });
-    this.dashboardEvents.next();
+    this.dashboardEvents.next({
+      type: 'timeout',
+      user: { firstName: user.firstName, lastName: user.lastName, username: user.username },
+      destination: visit.destination,
+      purpose: visit.purpose,
+    });
     return visit;
   }
 
@@ -72,7 +84,12 @@ export class AppService {
     if (!existingVisit) throw new NotFoundException('Visit not found.');
     if (existingVisit.timedInAt) throw new BadRequestException('This visit is already closed.');
     const visit = await this.prisma.visit.update({ where: { id: visitId }, data: { timedInAt: new Date() }, include: { user: true, location: true } });
-    this.dashboardEvents.next();
+    this.dashboardEvents.next({
+      type: 'timein',
+      user: { firstName: visit.user.firstName, lastName: visit.user.lastName, username: visit.user.username },
+      destination: visit.destination,
+      purpose: visit.purpose,
+    });
     return visit;
   }
 }
