@@ -60,8 +60,10 @@ From the repository root on the VPS, make sure `server/.env` contains the produc
 
 ```bash
 docker compose up -d --build
+docker compose run --rm api npx prisma db push
+docker compose up -d
 docker compose ps
 curl http://localhost:8080/api/health
 ```
 
-The Angular app is served at `http://<vps-address>:8080`. Nginx serves the SPA and forwards `/api/*` to the NestJS container. The API container is not published directly to the host. Database schema migrations are not run automatically; apply the Prisma migration procedure above before starting the containers when migrations are available.
+The Angular app is served at `http://<vps-address>:8080`. Nginx serves the SPA and forwards `/api/*` to the NestJS container. The API container is not published directly to the host. The `prisma db push` command adds the outing group column required for companion logging; review it before production use if formal migration files are preferred.

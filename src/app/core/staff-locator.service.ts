@@ -11,6 +11,7 @@ export interface ActiveVisit {
   timedInAt?: string | null;
   destination: string;
   purpose: string;
+  groupId?: string | null;
   user: StaffUser;
   location: Location | null;
 }
@@ -56,8 +57,8 @@ export class StaffLocatorService {
       return () => events.close();
     });
   }
-  timeOut(userId: number, locationId: number | null, destination: string, purpose: string) { return this.http.post(`${this.apiUrl}/visits/timeout`, { userId, locationId, destination, purpose }, this.options()); }
-  timeIn(visitId: number) { return this.http.patch(`${this.apiUrl}/visits/${visitId}/timein`, {}, this.options()); }
+  timeOut(userId: number, companionIds: number[], locationId: number | null, destination: string, purpose: string, timedOutAt: string) { return this.http.post(`${this.apiUrl}/visits/timeout`, { userId, companionIds, locationId, destination, purpose, timedOutAt }, this.options()); }
+  timeIn(visitId: number, timedInAt: string) { return this.http.patch(`${this.apiUrl}/visits/${visitId}/timein`, { timedInAt }, this.options()); }
   createUser(firstName: string, lastName: string, username: string, password: string, isAdmin = false) { return this.http.post(`${this.apiUrl}/users`, { firstName, lastName, username, password, isAdmin }, this.options()); }
   createLocation(name: string) { return this.http.post(`${this.apiUrl}/locations`, { name }, this.options()); }
 }

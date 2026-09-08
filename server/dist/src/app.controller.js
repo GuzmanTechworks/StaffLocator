@@ -34,9 +34,9 @@ let AppController = class AppController {
     }
     createLocation(body) { return this.appService.createLocation(body.name); }
     timeOut(body) {
-        return this.appService.timeOut(Number(body.userId), body.locationId ? Number(body.locationId) : null, body.destination, body.purpose);
+        return this.appService.timeOut(Number(body.userId), body.companionIds ?? [], body.locationId ? Number(body.locationId) : null, body.destination, body.purpose, body.timedOutAt);
     }
-    timeIn(id) { return this.appService.timeIn(id); }
+    timeIn(id, body) { return this.appService.timeIn(id, body.timedInAt); }
 };
 exports.AppController = AppController;
 __decorate([
@@ -98,8 +98,9 @@ __decorate([
     (0, common_1.Patch)('visits/:id/timein'),
     (0, common_1.UseGuards)(auth_guard_1.AuthGuard),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number]),
+    __metadata("design:paramtypes", [Number, Object]),
     __metadata("design:returntype", void 0)
 ], AppController.prototype, "timeIn", null);
 exports.AppController = AppController = __decorate([

@@ -65,6 +65,7 @@ export declare class AppService {
             purpose: string;
             timedOutAt: Date;
             timedInAt: Date | null;
+            groupId: string | null;
         })[];
         history: ({
             user: {
@@ -87,6 +88,7 @@ export declare class AppService {
             purpose: string;
             timedOutAt: Date;
             timedInAt: Date | null;
+            groupId: string | null;
         })[];
     }>;
     createUser(firstName: string, lastName: string, username: string, password: string, isAdmin?: boolean): Promise<{
@@ -102,7 +104,7 @@ export declare class AppService {
         name: string;
         active: boolean;
     }>;
-    timeOut(userId: number, locationId: number | null, destination: string, purpose: string): Promise<{
+    timeOut(userId: number, companionIds: number[], locationId: number | null, destination: string, purpose: string, timedOutAt?: string): Promise<({
         user: {
             id: number;
             username: string;
@@ -126,8 +128,9 @@ export declare class AppService {
         purpose: string;
         timedOutAt: Date;
         timedInAt: Date | null;
-    }>;
-    timeIn(visitId: number): Promise<{
+        groupId: string | null;
+    })[]>;
+    timeIn(visitId: number, timedInAt?: string): Promise<{
         user: {
             id: number;
             username: string;
@@ -151,5 +154,6 @@ export declare class AppService {
         purpose: string;
         timedOutAt: Date;
         timedInAt: Date | null;
+        groupId: string | null;
     }>;
 }

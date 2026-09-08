@@ -37,11 +37,11 @@ export class AppController {
 
   @Post('visits/timeout')
   @UseGuards(AuthGuard)
-  timeOut(@Body() body: { userId: number; locationId?: number | null; destination: string; purpose: string }) {
-    return this.appService.timeOut(Number(body.userId), body.locationId ? Number(body.locationId) : null, body.destination, body.purpose);
+  timeOut(@Body() body: { userId: number; companionIds?: number[]; locationId?: number | null; destination: string; purpose: string; timedOutAt?: string }) {
+    return this.appService.timeOut(Number(body.userId), body.companionIds ?? [], body.locationId ? Number(body.locationId) : null, body.destination, body.purpose, body.timedOutAt);
   }
 
   @Patch('visits/:id/timein')
   @UseGuards(AuthGuard)
-  timeIn(@Param('id', ParseIntPipe) id: number) { return this.appService.timeIn(id); }
+  timeIn(@Param('id', ParseIntPipe) id: number, @Body() body: { timedInAt?: string }) { return this.appService.timeIn(id, body.timedInAt); }
 }

@@ -18,6 +18,7 @@ const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jwt_1 = require("@nestjs/jwt");
 const prisma_service_1 = require("./prisma.service");
 const rxjs_1 = require("rxjs");
+const node_crypto_1 = require("node:crypto");
 let AppService = class AppService {
     constructor(prisma, jwt) {
         this.prisma = prisma;
@@ -63,36 +64,45 @@ let AppService = class AppService {
             throw new common_1.BadRequestException('Location name is required.');
         return this.prisma.location.create({ data: { name: name.trim() } });
     }
-    async timeOut(userId, locationId, destination, purpose) {
+    async timeOut(userId, companionIds, locationId, destination, purpose, timedOutAt) {
         if (!destination?.trim() || !purpose?.trim())
             throw new common_1.BadRequestException('Destination and purpose are required.');
-        const [user, location, openVisit] = await Promise.all([
-            this.prisma.user.findUnique({ where: { id: userId } }),
+        const memberIds = [...new Set([userId, ...companionIds.map(Number)])];
+        const timeOutDate = timedOutAt ? new Date(timedOutAt) : new Date();
+        if (Number.isNaN(timeOutDate.getTime()))
+            throw new common_1.BadRequestException('Invalid time out.');
+        const [users, location, openVisits] = await Promise.all([
+            this.prisma.user.findMany({ where: { id: { in: memberIds } } }),
             locationId ? this.prisma.location.findUnique({ where: { id: locationId, active: true } }) : null,
-            this.prisma.visit.findFirst({ where: { userId, timedInAt: null } }),
+            this.prisma.visit.findMany({ where: { userId: { in: memberIds }, timedInAt: null } }),
         ]);
-        if (!user)
-            throw new common_1.NotFoundException('User not found.');
+        const user = users.find((item) => item.id === userId);
+        if (!user || users.length !== memberIds.length)
+            throw new common_1.NotFoundException('One or more users were not found.');
         if (locationId && !location)
             throw new common_1.NotFoundException('Location not found.');
-        if (openVisit)
-            throw new common_1.BadRequestException('This user is already timed out.');
-        const visit = await this.prisma.visit.create({ data: { userId, locationId, destination: destination.trim(), purpose: purpose.trim() }, include: { user: true, location: true } });
+        if (openVisits.length)
+            throw new common_1.BadRequestException('One or more selected users are already timed out.');
+        const groupId = (0, node_crypto_1.randomUUID)();
+        await this.prisma.visit.createMany({ data: memberIds.map((memberId) => ({ userId: memberId, groupId, locationId, destination: destination.trim(), purpose: purpose.trim(), timedOutAt: timeOutDate })) });
         this.dashboardEvents.next({
             type: 'timeout',
             user: { firstName: user.firstName, lastName: user.lastName, username: user.username },
-            destination: visit.destination,
-            purpose: visit.purpose,
+            destination: destination.trim(),
+            purpose: purpose.trim(),
         });
-        return visit;
+        return this.prisma.visit.findMany({ where: { groupId }, include: { user: true, location: true } });
     }
-    async timeIn(visitId) {
+    async timeIn(visitId, timedInAt) {
         const existingVisit = await this.prisma.visit.findUnique({ where: { id: visitId } });
         if (!existingVisit)
             throw new common_1.NotFoundException('Visit not found.');
         if (existingVisit.timedInAt)
             throw new common_1.BadRequestException('This visit is already closed.');
-        const visit = await this.prisma.visit.update({ where: { id: visitId }, data: { timedInAt: new Date() }, include: { user: true, location: true } });
+        const timeInDate = timedInAt ? new Date(timedInAt) : new Date();
+        if (Number.isNaN(timeInDate.getTime()))
+            throw new common_1.BadRequestException('Invalid time in.');
+        const visit = await this.prisma.visit.update({ where: { id: visitId }, data: { timedInAt: timeInDate }, include: { user: true, location: true } });
         this.dashboardEvents.next({
             type: 'timein',
             user: { firstName: visit.user.firstName, lastName: visit.user.lastName, username: visit.user.username },

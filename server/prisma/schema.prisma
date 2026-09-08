@@ -34,9 +34,11 @@ model Visit {
   purpose    String    @default("") @db.VarChar(255)
   timedOutAt DateTime  @default(now())
   timedInAt  DateTime?
+  groupId    String?  @db.VarChar(36)
   user       User      @relation(fields: [userId], references: [id])
   location   Location? @relation(fields: [locationId], references: [id])
 
   @@index([timedInAt])
   @@index([userId, timedInAt])
+  @@index([groupId])
 }

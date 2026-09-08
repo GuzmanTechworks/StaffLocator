@@ -60,6 +60,7 @@ export declare class AppController {
             purpose: string;
             timedOutAt: Date;
             timedInAt: Date | null;
+            groupId: string | null;
         })[];
         history: ({
             user: {
@@ -82,6 +83,7 @@ export declare class AppController {
             purpose: string;
             timedOutAt: Date;
             timedInAt: Date | null;
+            groupId: string | null;
         })[];
     }>;
     dashboardEvents(): Observable<MessageEvent>;
@@ -108,9 +110,39 @@ export declare class AppController {
     }>;
     timeOut(body: {
         userId: number;
+        companionIds?: number[];
         locationId?: number | null;
         destination: string;
         purpose: string;
+        timedOutAt?: string;
+    }): Promise<({
+        user: {
+            id: number;
+            username: string;
+            firstName: string;
+            lastName: string;
+            password: string;
+            isAdmin: boolean;
+            createdAt: Date;
+        };
+        location: {
+            id: number;
+            createdAt: Date;
+            name: string;
+            active: boolean;
+        } | null;
+    } & {
+        id: number;
+        userId: number;
+        locationId: number | null;
+        destination: string;
+        purpose: string;
+        timedOutAt: Date;
+        timedInAt: Date | null;
+        groupId: string | null;
+    })[]>;
+    timeIn(id: number, body: {
+        timedInAt?: string;
     }): Promise<{
         user: {
             id: number;
@@ -135,30 +167,6 @@ export declare class AppController {
         purpose: string;
         timedOutAt: Date;
         timedInAt: Date | null;
-    }>;
-    timeIn(id: number): Promise<{
-        user: {
-            id: number;
-            username: string;
-            firstName: string;
-            lastName: string;
-            password: string;
-            isAdmin: boolean;
-            createdAt: Date;
-        };
-        location: {
-            id: number;
-            createdAt: Date;
-            name: string;
-            active: boolean;
-        } | null;
-    } & {
-        id: number;
-        userId: number;
-        locationId: number | null;
-        destination: string;
-        purpose: string;
-        timedOutAt: Date;
-        timedInAt: Date | null;
+        groupId: string | null;
     }>;
 }

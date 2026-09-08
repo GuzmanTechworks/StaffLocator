@@ -1,4 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, HostListener, ViewChild } from '@angular/core';
 import { ChangeDetectorRef } from '@angular/core';
 import { IonInput } from '@ionic/angular';
 import { interval } from 'rxjs';
@@ -13,9 +13,14 @@ import { ActiveVisit, DashboardData, DashboardEvent, StaffLocatorService } from 
 export class HomePage {
   dashboard: DashboardData = { users: [], locations: [], activeVisits: [], history: [] };
   selectedUserId: number | null = null;
-  selectedLocationId: number | null = null;
+  selectedLocationIds: number[] = [];
+  selectedCompanionIds: number[] = [];
+  selectedReturnVisitIds: number[] = [];
   isManualDestination = false;
-  destination = '';
+  manualDestination = '';
+  locationSearch = '';
+  timeoutTime = this.currentTimeValue();
+  timeinTime = this.currentTimeValue();
   purpose = '';
   newFirstName = '';
   newLastName = '';
@@ -28,6 +33,8 @@ export class HomePage {
   isDarkMode = localStorage.getItem('staff-locator-theme') === 'dark';
   @ViewChild('manualDestinationInput') private manualDestinationInput?: IonInput;
   private chimePromise: Promise<void> = Promise.resolve();
+  private notificationAudioUnlocked = false;
+  private notificationAudioContext?: AudioContext;
 
   constructor(private readonly staffLocator: StaffLocatorService, private readonly changeDetector: ChangeDetectorRef) {
     this.applyTheme();
@@ -48,7 +55,25 @@ export class HomePage {
   }
 
   get sortedLocations() {
-    return [...this.dashboard.locations].sort((first, second) => first.name.localeCompare(second.name));
+    return this.dashboard.locations.filter((location) => location.name.toLowerCase().includes(this.locationSearch.toLowerCase())).sort((first, second) => first.name.localeCompare(second.name));
+  }
+
+  get availableCompanions() { return this.dashboard.users.filter((user) => user.id !== this.session?.user.id); }
+
+  get returnGroupVisits() {
+    const ownVisit = this.dashboard.activeVisits.find((visit) => visit.user.id === this.session?.user.id);
+    return ownVisit?.groupId ? this.dashboard.activeVisits.filter((visit) => visit.groupId === ownVisit.groupId) : [];
+  }
+
+  get destination() {
+    const selectedNames = this.dashboard.locations
+      .filter((location) => this.selectedLocationIds.includes(location.id))
+      .map((location) => location.name);
+    return [...selectedNames, this.manualDestination.trim()].filter(Boolean).join(', ');
+  }
+
+  get selectedDestinationValues(): Array<number | string> {
+    return this.isManualDestination ? [...this.selectedLocationIds, 'manual'] : this.selectedLocationIds;
   }
 
   toggleTheme() {
@@ -61,15 +86,32 @@ export class HomePage {
     document.documentElement.classList.toggle('ion-palette-dark', this.isDarkMode);
   }
 
-  chooseLocation(locationId: number | 'manual' | null) {
-    this.isManualDestination = locationId === 'manual';
-    this.selectedLocationId = typeof locationId === 'number' ? locationId : null;
-    const location = this.dashboard.locations.find((item) => item.id === this.selectedLocationId);
-    this.destination = location?.name ?? '';
+  @HostListener('document:pointerdown')
+  @HostListener('document:keydown')
+  unlockNotificationAudio() {
+    if (this.notificationAudioUnlocked) return;
+    this.notificationAudioUnlocked = true;
+    const AudioContextClass = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (AudioContextClass) {
+      this.notificationAudioContext = new AudioContextClass();
+      void this.notificationAudioContext.resume();
+    }
+    if ('speechSynthesis' in window) window.speechSynthesis.resume();
+  }
+
+  chooseLocations(values: Array<number | string> | null) {
+    const selectedValues = values ?? [];
+    this.isManualDestination = selectedValues.includes('manual');
+    this.selectedLocationIds = selectedValues.filter((value): value is number => typeof value === 'number');
+    if (!this.isManualDestination) this.manualDestination = '';
     if (this.isManualDestination) {
       window.setTimeout(() => void this.manualDestinationInput?.setFocus());
     }
   }
+
+  private currentTimeValue() { return new Date().toTimeString().slice(0, 5); }
+
+  private asIsoTime(value: string) { return new Date(`${new Date().toISOString().slice(0, 10)}T${value}`).toISOString(); }
 
   logout() { this.staffLocator.session = null; this.dashboard = { users: [], locations: [], activeVisits: [], history: [] }; }
 
@@ -88,11 +130,11 @@ export class HomePage {
   }
 
   private async playAnnouncementChime() {
-    const AudioContextClass = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-    if (!AudioContextClass) return;
+    if (!this.notificationAudioUnlocked) return;
+    const audioContext = this.notificationAudioContext;
+    if (!audioContext) return;
 
     try {
-      const audioContext = new AudioContextClass();
       await audioContext.resume();
       const start = audioContext.currentTime;
       const playPaTone = (frequency: number, offset: number, duration: number) => {
@@ -118,7 +160,6 @@ export class HomePage {
       playPaTone(880, 0, 0.55);
       playPaTone(660, 0.62, 0.7);
       await new Promise<void>((resolve) => window.setTimeout(resolve, 1450));
-      await audioContext.close();
     } catch {
       // Speech still provides the notification when audio is unavailable.
     }
@@ -169,17 +210,24 @@ export class HomePage {
 
   timeOut() {
     if (!this.session || !this.destination.trim() || !this.purpose.trim()) return;
-    this.staffLocator.timeOut(this.session.user.id, this.selectedLocationId, this.destination, this.purpose).subscribe({
-      next: () => { this.message = 'Staff member timed out.'; this.destination = ''; this.purpose = ''; this.selectedLocationId = null; this.isManualDestination = false; this.refresh(); },
+    this.staffLocator.timeOut(this.session.user.id, this.selectedCompanionIds, this.selectedLocationIds[0] ?? null, this.destination, this.purpose, this.asIsoTime(this.timeoutTime)).subscribe({
+      next: () => { this.message = 'Staff member timed out.'; this.manualDestination = ''; this.purpose = ''; this.selectedLocationIds = []; this.selectedCompanionIds = []; this.isManualDestination = false; this.refresh(); },
       error: (response) => { this.error = response.error?.message ?? 'Unable to time out staff member.'; },
     });
   }
 
   timeIn(visit: ActiveVisit) {
-    this.staffLocator.timeIn(visit.id).subscribe({
+    this.staffLocator.timeIn(visit.id, this.asIsoTime(this.timeinTime)).subscribe({
       next: () => { this.message = `${visit.user.username} is back in the office.`; this.refresh(); },
       error: () => { this.error = 'Unable to time in staff member.'; },
     });
+  }
+
+  timeInSelected() {
+    this.selectedReturnVisitIds.forEach((visitId) => {
+      this.staffLocator.timeIn(visitId, this.asIsoTime(this.timeinTime)).subscribe({ next: () => this.refresh() });
+    });
+    this.selectedReturnVisitIds = [];
   }
 
   createUser() {

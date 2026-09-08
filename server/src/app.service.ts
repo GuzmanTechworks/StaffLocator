@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from './prisma.service';
 import { Subject } from 'rxjs';
+import { randomUUID } from 'node:crypto';
 
 export type DashboardEvent = {
   type: 'timeout' | 'timein';
@@ -59,31 +60,38 @@ export class AppService {
     return this.prisma.location.create({ data: { name: name.trim() } });
   }
 
-  async timeOut(userId: number, locationId: number | null, destination: string, purpose: string) {
+  async timeOut(userId: number, companionIds: number[], locationId: number | null, destination: string, purpose: string, timedOutAt?: string) {
     if (!destination?.trim() || !purpose?.trim()) throw new BadRequestException('Destination and purpose are required.');
-    const [user, location, openVisit] = await Promise.all([
-      this.prisma.user.findUnique({ where: { id: userId } }),
+    const memberIds = [...new Set([userId, ...companionIds.map(Number)])];
+    const timeOutDate = timedOutAt ? new Date(timedOutAt) : new Date();
+    if (Number.isNaN(timeOutDate.getTime())) throw new BadRequestException('Invalid time out.');
+    const [users, location, openVisits] = await Promise.all([
+      this.prisma.user.findMany({ where: { id: { in: memberIds } } }),
       locationId ? this.prisma.location.findUnique({ where: { id: locationId, active: true } }) : null,
-      this.prisma.visit.findFirst({ where: { userId, timedInAt: null } }),
+      this.prisma.visit.findMany({ where: { userId: { in: memberIds }, timedInAt: null } }),
     ]);
-    if (!user) throw new NotFoundException('User not found.');
+    const user = users.find((item) => item.id === userId);
+    if (!user || users.length !== memberIds.length) throw new NotFoundException('One or more users were not found.');
     if (locationId && !location) throw new NotFoundException('Location not found.');
-    if (openVisit) throw new BadRequestException('This user is already timed out.');
-    const visit = await this.prisma.visit.create({ data: { userId, locationId, destination: destination.trim(), purpose: purpose.trim() }, include: { user: true, location: true } });
+    if (openVisits.length) throw new BadRequestException('One or more selected users are already timed out.');
+    const groupId = randomUUID();
+    await this.prisma.visit.createMany({ data: memberIds.map((memberId) => ({ userId: memberId, groupId, locationId, destination: destination.trim(), purpose: purpose.trim(), timedOutAt: timeOutDate })) });
     this.dashboardEvents.next({
       type: 'timeout',
       user: { firstName: user.firstName, lastName: user.lastName, username: user.username },
-      destination: visit.destination,
-      purpose: visit.purpose,
+      destination: destination.trim(),
+      purpose: purpose.trim(),
     });
-    return visit;
+    return this.prisma.visit.findMany({ where: { groupId }, include: { user: true, location: true } });
   }
 
-  async timeIn(visitId: number) {
+  async timeIn(visitId: number, timedInAt?: string) {
     const existingVisit = await this.prisma.visit.findUnique({ where: { id: visitId } });
     if (!existingVisit) throw new NotFoundException('Visit not found.');
     if (existingVisit.timedInAt) throw new BadRequestException('This visit is already closed.');
-    const visit = await this.prisma.visit.update({ where: { id: visitId }, data: { timedInAt: new Date() }, include: { user: true, location: true } });
+    const timeInDate = timedInAt ? new Date(timedInAt) : new Date();
+    if (Number.isNaN(timeInDate.getTime())) throw new BadRequestException('Invalid time in.');
+    const visit = await this.prisma.visit.update({ where: { id: visitId }, data: { timedInAt: timeInDate }, include: { user: true, location: true } });
     this.dashboardEvents.next({
       type: 'timein',
       user: { firstName: visit.user.firstName, lastName: visit.user.lastName, username: visit.user.username },
