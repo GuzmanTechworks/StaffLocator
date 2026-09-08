@@ -104,18 +104,39 @@ export class HomePage {
   chooseLocations(values: Array<number | string> | null) {
     const selectedValues = values ?? [];
     this.isManualDestination = selectedValues.includes('manual');
-    this.selectedLocationIds = selectedValues.filter((value): value is number => typeof value === 'number');
+    this.selectedLocationIds = selectedValues
+      .filter((value) => value !== 'manual')
+      .map((value) => Number(value))
+      .filter((value) => Number.isInteger(value));
     if (!this.isManualDestination) this.manualDestination = '';
     if (this.isManualDestination) {
       window.setTimeout(() => void this.manualDestinationInput?.setFocus());
     }
   }
 
-  private currentDateValue() { return new Date().toISOString().slice(0, 10); }
+  private currentDateValue() {
+    const now = new Date();
+    return `${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')}/${now.getFullYear()}`;
+  }
 
-  private currentTimeValue() { return new Date().toTimeString().slice(0, 5); }
+  private currentTimeValue() {
+    const now = new Date();
+    const hour = now.getHours() % 12 || 12;
+    return `${String(hour).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')} ${now.getHours() >= 12 ? 'PM' : 'AM'}`;
+  }
 
-  private asIsoTime(date: string, time: string) { return new Date(`${date}T${time}`).toISOString(); }
+  private asIsoTime(date: string, time: string) {
+    const dateMatch = date.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    const timeMatch = time.trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+    if (!dateMatch || !timeMatch) return '';
+    let hour = Number(timeMatch[1]);
+    const minute = Number(timeMatch[2]);
+    if (hour < 1 || hour > 12 || minute > 59) return '';
+    if (timeMatch[3].toUpperCase() === 'PM' && hour !== 12) hour += 12;
+    if (timeMatch[3].toUpperCase() === 'AM' && hour === 12) hour = 0;
+    const value = new Date(Number(dateMatch[3]), Number(dateMatch[1]) - 1, Number(dateMatch[2]), hour, minute);
+    return Number.isNaN(value.getTime()) ? '' : value.toISOString();
+  }
 
   logout() { this.staffLocator.session = null; this.dashboard = { users: [], locations: [], activeVisits: [], history: [] }; }
 
@@ -214,22 +235,28 @@ export class HomePage {
 
   timeOut() {
     if (!this.session || !this.destination.trim() || !this.purpose.trim()) return;
-    this.staffLocator.timeOut(this.session.user.id, this.selectedCompanionIds, this.selectedLocationIds[0] ?? null, this.destination, this.purpose, this.asIsoTime(this.timeoutDate, this.timeoutTime)).subscribe({
+    const timedOutAt = this.asIsoTime(this.timeoutDate, this.timeoutTime);
+    if (!timedOutAt) { this.error = 'Use time out date MM/DD/YYYY and time hh:mm AM/PM.'; return; }
+    this.staffLocator.timeOut(this.session.user.id, this.selectedCompanionIds.map(Number), this.selectedLocationIds[0] ?? null, this.destination, this.purpose, timedOutAt).subscribe({
       next: () => { this.message = 'Staff member timed out.'; this.manualDestination = ''; this.purpose = ''; this.selectedLocationIds = []; this.selectedCompanionIds = []; this.isManualDestination = false; this.refresh(); },
       error: (response) => { this.error = response.error?.message ?? 'Unable to time out staff member.'; },
     });
   }
 
   timeIn(visit: ActiveVisit) {
-    this.staffLocator.timeIn(visit.id, this.asIsoTime(this.timeinDate, this.timeinTime)).subscribe({
+    const timedInAt = this.asIsoTime(this.timeinDate, this.timeinTime);
+    if (!timedInAt) { this.error = 'Use time in date MM/DD/YYYY and time hh:mm AM/PM.'; return; }
+    this.staffLocator.timeIn(visit.id, timedInAt).subscribe({
       next: () => { this.message = `${visit.user.username} is back in the office.`; this.refresh(); },
       error: () => { this.error = 'Unable to time in staff member.'; },
     });
   }
 
   timeInSelected() {
+    const timedInAt = this.asIsoTime(this.timeinDate, this.timeinTime);
+    if (!timedInAt) { this.error = 'Use time in date MM/DD/YYYY and time hh:mm AM/PM.'; return; }
     this.selectedReturnVisitIds.forEach((visitId) => {
-      this.staffLocator.timeIn(visitId, this.asIsoTime(this.timeinDate, this.timeinTime)).subscribe({ next: () => this.refresh() });
+      this.staffLocator.timeIn(visitId, timedInAt).subscribe({ next: () => this.refresh() });
     });
     this.selectedReturnVisitIds = [];
   }
