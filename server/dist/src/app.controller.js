@@ -27,7 +27,7 @@ let AppController = class AppController {
     login(body) { return this.appService.login(body.username, body.password); }
     dashboard() { return this.appService.getDashboard(); }
     dashboardEvents() {
-        return this.appService.dashboardEvents.pipe((0, rxjs_1.map)(() => ({ data: { changed: true } })));
+        return this.appService.dashboardEvents.pipe((0, rxjs_1.map)((event) => ({ data: event })));
     }
     createUser(body) {
         return this.appService.createUser(body.firstName, body.lastName, body.username, body.password, body.isAdmin);

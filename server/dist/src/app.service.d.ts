@@ -1,10 +1,20 @@
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from './prisma.service';
 import { Subject } from 'rxjs';
+export type DashboardEvent = {
+    type: 'timeout' | 'timein';
+    user: {
+        firstName: string;
+        lastName: string;
+        username: string;
+    };
+    destination: string;
+    purpose: string;
+};
 export declare class AppService {
     private readonly prisma;
     private readonly jwt;
-    readonly dashboardEvents: Subject<void>;
+    readonly dashboardEvents: Subject<DashboardEvent>;
     constructor(prisma: PrismaService, jwt: JwtService);
     login(username: string, password: string): Promise<{
         accessToken: string;

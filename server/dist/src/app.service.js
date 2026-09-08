@@ -78,7 +78,12 @@ let AppService = class AppService {
         if (openVisit)
             throw new common_1.BadRequestException('This user is already timed out.');
         const visit = await this.prisma.visit.create({ data: { userId, locationId, destination: destination.trim(), purpose: purpose.trim() }, include: { user: true, location: true } });
-        this.dashboardEvents.next();
+        this.dashboardEvents.next({
+            type: 'timeout',
+            user: { firstName: user.firstName, lastName: user.lastName, username: user.username },
+            destination: visit.destination,
+            purpose: visit.purpose,
+        });
         return visit;
     }
     async timeIn(visitId) {
@@ -88,7 +93,12 @@ let AppService = class AppService {
         if (existingVisit.timedInAt)
             throw new common_1.BadRequestException('This visit is already closed.');
         const visit = await this.prisma.visit.update({ where: { id: visitId }, data: { timedInAt: new Date() }, include: { user: true, location: true } });
-        this.dashboardEvents.next();
+        this.dashboardEvents.next({
+            type: 'timein',
+            user: { firstName: visit.user.firstName, lastName: visit.user.lastName, username: visit.user.username },
+            destination: visit.destination,
+            purpose: visit.purpose,
+        });
         return visit;
     }
 };
