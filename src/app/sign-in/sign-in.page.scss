@@ -1,0 +1,5 @@
+:host { --ink: var(--app-ink); --muted: var(--app-muted); --line: var(--app-line); --green: #087f5b; display: block; }
+ ion-content { --background: var(--app-background); }
+.login-shell { min-height: 100%; display: grid; place-items: center; padding: 24px; }
+.login-card { width: min(100%, 410px); background: var(--app-surface); border: 1px solid var(--line); border-top: 4px solid var(--green); padding: 38px; box-shadow: 0 18px 45px rgba(31, 42, 46, .08); }
+.back-link { display: inline-block; margin-bottom: 30px; color: var(--green); font-size: 13px; text-decoration: none; }.login-logo { width: 64px; height: 64px; object-fit: contain; margin-bottom: 20px; }.eyebrow { color: var(--green); font-size: 10px; font-weight: 800; letter-spacing: 1.5px; }.login-card h1 { color: var(--ink); font-size: 32px; margin: 7px 0; }.login-copy { color: var(--muted); font-size: 14px; margin-bottom: 28px; }.login-card form { display: grid; gap: 14px; }.login-card ion-button { --background: var(--green); height: 48px; margin-top: 6px; }.notice { padding: 12px 15px; margin: 12px 0; font-size: 13px; }.danger { background: #ffebe7; color: #a33d2e; }

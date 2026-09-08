@@ -1,0 +1,7 @@
+{
+  "name": "StaffLocator",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}
