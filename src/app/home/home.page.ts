@@ -97,13 +97,26 @@ export class HomePage {
   @HostListener('document:pointerdown')
   @HostListener('document:keydown')
   unlockNotificationAudio() {
-    if (this.notificationAudioUnlocked) return;
+    this.tryUnlockNotificationAudio();
+  }
+
+  private forceUnlockNotificationAudio() {
+    this.tryUnlockNotificationAudio(true);
+  }
+
+  private tryUnlockNotificationAudio(force = false) {
+    if (!force && this.notificationAudioUnlocked) return;
+
     this.notificationAudioUnlocked = true;
     const AudioContextClass = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+
     if (AudioContextClass) {
-      this.notificationAudioContext = new AudioContextClass();
-      void this.notificationAudioContext.resume();
+      this.notificationAudioContext ??= new AudioContextClass();
+      if (this.notificationAudioContext.state === 'suspended') {
+        void this.notificationAudioContext.resume();
+      }
     }
+
     if ('speechSynthesis' in window) window.speechSynthesis.resume();
   }
 
@@ -174,7 +187,10 @@ export class HomePage {
 
   private async playAnnouncementChime() {
     try {
+      this.unlockNotificationAudio();
+
       const chime = new Audio(this.announcementChimePath);
+      chime.preload = 'auto';
       chime.volume = 1;
       chime.currentTime = 0;
 
@@ -258,6 +274,8 @@ export class HomePage {
 
   private async announceDashboardEvent(event: DashboardEvent) {
     if (!this.session?.user?.isAdmin) return;
+
+    this.forceUnlockNotificationAudio();
 
     if (event.groupId) {
       const eventKey = `${event.type}:${event.groupId}`;
