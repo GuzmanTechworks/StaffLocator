@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: '/api'
+  apiUrl: 'https://stafflocator.cloud.cagayan.gov.ph/api'
 };

@@ -136,7 +136,9 @@ export class HomePage {
 
   closeDestinationPicker() { this.destinationPickerOpen = false; }
 
-  toggleSidebar() { this.sidebarCollapsed = !this.sidebarCollapsed; }
+  toggleSidebar() {
+    this.sidebarOpen = !this.sidebarOpen;
+  }
 
   closeSidebar() { this.sidebarOpen = false; }
 
