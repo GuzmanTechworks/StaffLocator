@@ -3,19 +3,19 @@ import { HttpClientModule } from '@angular/common/http';
 import { IonicModule } from '@ionic/angular/lazy';
 import { FormsModule } from '@angular/forms';
 
-import { HomePage } from './home.page';
+import { DashboardPage } from '../dashboard/dashboard.page';
 
-describe('HomePage', () => {
-  let component: HomePage;
-  let fixture: ComponentFixture<HomePage>;
+describe('DashboardPage', () => {
+  let component: DashboardPage;
+  let fixture: ComponentFixture<DashboardPage>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [HomePage],
+      declarations: [DashboardPage],
       imports: [FormsModule, HttpClientModule, IonicModule.forRoot()]
     }).compileComponents();
 
-    fixture = TestBed.createComponent(HomePage);
+    fixture = TestBed.createComponent(DashboardPage);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

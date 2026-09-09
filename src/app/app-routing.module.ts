@@ -4,7 +4,24 @@ import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 const routes: Routes = [
   {
     path: 'home',
-    loadChildren: () => import('./home/home.module').then( m => m.HomePageModule)
+    redirectTo: 'dashboard',
+    pathMatch: 'full'
+  },
+  {
+    path: 'dashboard',
+    loadChildren: () => import('./dashboard/dashboard.module').then(m => m.DashboardPageModule)
+  },
+  {
+    path: 'history',
+    loadChildren: () => import('./history/history.module').then(m => m.HistoryPageModule)
+  },
+  {
+    path: 'change-password',
+    loadChildren: () => import('./change-password/change-password.module').then(m => m.ChangePasswordPageModule)
+  },
+  {
+    path: 'system-management',
+    loadChildren: () => import('./system-management/system-management.module').then(m => m.SystemManagementPageModule)
   },
   {
     path: 'sign-in',
@@ -12,7 +29,7 @@ const routes: Routes = [
   },
   {
     path: '',
-    redirectTo: 'home',
+    redirectTo: 'dashboard',
     pathMatch: 'full'
   },
 ];

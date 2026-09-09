@@ -1,15 +1,10 @@
-import { Component, HostListener, ViewChild } from '@angular/core';
+import { Directive, HostListener, ViewChild } from '@angular/core';
 import { ChangeDetectorRef } from '@angular/core';
 import { IonInput } from '@ionic/angular';
 import { interval } from 'rxjs';
 import { ActiveVisit, DashboardData, DashboardEvent, StaffLocatorService } from '../core/staff-locator.service';
 
-@Component({
-  selector: 'app-home',
-  templateUrl: 'home.page.html',
-  styleUrls: ['home.page.scss'],
-  standalone: false,
-})
+@Directive()
 export class HomePage {
   dashboard: DashboardData = { users: [], locations: [], activeVisits: [], history: [] };
   selectedUserId: number | null = null;
@@ -20,10 +15,8 @@ export class HomePage {
   manualDestination = '';
   locationSearch = '';
   destinationPickerOpen = false;
-  timeoutDate = this.currentDateValue();
-  timeoutTime = this.currentTimeValue();
-  timeinDate = this.currentDateValue();
-  timeinTime = this.currentTimeValue();
+  sidebarOpen = false;
+  sidebarCollapsed = false;
   remarks = '';
   purpose = '';
   newFirstName = '';
@@ -39,6 +32,7 @@ export class HomePage {
   message = '';
   error = '';
   currentTime = this.formatCurrentTime();
+  currentDate = this.formatCurrentDate();
   isDarkMode = localStorage.getItem('staff-locator-theme') === 'dark';
   @ViewChild('manualDestinationInput') private manualDestinationInput?: IonInput;
   private chimePromise: Promise<void> = Promise.resolve();
@@ -50,6 +44,7 @@ export class HomePage {
     this.applyTheme();
     interval(1000).subscribe(() => {
       this.currentTime = this.formatCurrentTime();
+      this.currentDate = this.formatCurrentDate();
       this.changeDetector.markForCheck();
     });
   }
@@ -140,31 +135,11 @@ export class HomePage {
 
   closeDestinationPicker() { this.destinationPickerOpen = false; }
 
-  private currentDateValue() {
-    const now = new Date();
-    return `${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')}/${now.getFullYear()}`;
-  }
+  toggleSidebar() { this.sidebarCollapsed = !this.sidebarCollapsed; }
 
-  private currentTimeValue() {
-    const now = new Date();
-    const hour = now.getHours() % 12 || 12;
-    return `${String(hour).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')} ${now.getHours() >= 12 ? 'PM' : 'AM'}`;
-  }
+  closeSidebar() { this.sidebarOpen = false; }
 
-  private asIsoTime(date: string, time: string) {
-    const dateMatch = date.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-    const timeMatch = time.trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
-    if (!dateMatch || !timeMatch) return '';
-    let hour = Number(timeMatch[1]);
-    const minute = Number(timeMatch[2]);
-    if (hour < 1 || hour > 12 || minute > 59) return '';
-    if (timeMatch[3].toUpperCase() === 'PM' && hour !== 12) hour += 12;
-    if (timeMatch[3].toUpperCase() === 'AM' && hour === 12) hour = 0;
-    const value = new Date(Number(dateMatch[3]), Number(dateMatch[1]) - 1, Number(dateMatch[2]), hour, minute);
-    return Number.isNaN(value.getTime()) ? '' : value.toISOString();
-  }
-
-  logout() { this.staffLocator.session = null; this.dashboard = { users: [], locations: [], activeVisits: [], history: [] }; }
+  logout() { this.closeSidebar(); this.staffLocator.session = null; this.dashboard = { users: [], locations: [], activeVisits: [], history: [] }; }
 
   ionViewDidEnter() {
     this.loadDashboard();
@@ -176,10 +151,12 @@ export class HomePage {
 
   private formatCurrentTime() { return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }); }
 
+  private formatCurrentDate() { return new Date().toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }); }
+
   formatDate(value: string | null | undefined) { return value ? new Date(value).toLocaleDateString() : '-'; }
 
   private formatAnnouncementTime() {
-    return new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }).replace(/\s/g, '');
+    return new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
   }
 
   private async playAnnouncementChime() {
@@ -237,10 +214,19 @@ export class HomePage {
       });
     }
     const utterance = new SpeechSynthesisUtterance(announcement);
-    const femaleVoice = speech.getVoices().find((voice) => /female|samantha|victoria|karen|zira|aria|ava|susan|hazel/i.test(voice.name));
-    if (femaleVoice) utterance.voice = femaleVoice;
-    utterance.pitch = 1.08;
-    utterance.rate = 0.95;
+    const voices = speech.getVoices();
+    const preferredVoice = voices.find((voice) => /Microsoft (Aria|Jenny|Zira)|Google US English|Samantha|Karen|Victoria|Ava|Hazel/i.test(voice.name))
+      ?? voices.find((voice) => /^en-(US|GB|AU|CA)\b/i.test(voice.lang) && /female|natural|neural|online/i.test(`${voice.name} ${voice.voiceURI}`))
+      ?? voices.find((voice) => /^en-(US|GB|AU|CA)\b/i.test(voice.lang));
+    if (preferredVoice) {
+      utterance.voice = preferredVoice;
+      utterance.lang = preferredVoice.lang;
+    } else {
+      utterance.lang = 'en-US';
+    }
+    utterance.pitch = 1;
+    utterance.rate = 0.88;
+    utterance.volume = 1;
     speech.speak(utterance);
   }
 
@@ -272,28 +258,22 @@ export class HomePage {
 
   timeOut() {
     if (!this.session || !this.destination.trim() || !this.purpose.trim()) return;
-    const timedOutAt = this.asIsoTime(this.timeoutDate, this.timeoutTime);
-    if (!timedOutAt) { this.error = 'Use time out date MM/DD/YYYY and time hh:mm AM/PM.'; return; }
-    this.staffLocator.timeOut(this.session.user.id, this.selectedCompanionIds.map(Number), this.selectedLocationIds[0] ?? null, this.destination, this.purpose, timedOutAt).subscribe({
+    this.staffLocator.timeOut(this.session.user.id, this.selectedCompanionIds.map(Number), this.selectedLocationIds[0] ?? null, this.destination, this.purpose).subscribe({
       next: () => { this.message = 'Staff member timed out.'; this.manualDestination = ''; this.purpose = ''; this.selectedLocationIds = []; this.selectedCompanionIds = []; this.isManualDestination = false; this.refresh(); },
       error: (response) => { this.error = response.error?.message ?? 'Unable to time out staff member.'; },
     });
   }
 
   timeIn(visit: ActiveVisit) {
-    const timedInAt = this.asIsoTime(this.timeinDate, this.timeinTime);
-    if (!timedInAt) { this.error = 'Use time in date MM/DD/YYYY and time hh:mm AM/PM.'; return; }
-    this.staffLocator.timeIn(visit.id, timedInAt, this.remarks).subscribe({
+    this.staffLocator.timeIn(visit.id, undefined, this.remarks).subscribe({
       next: () => { this.message = `${visit.user.username} is back in the office.`; this.refresh(); },
       error: () => { this.error = 'Unable to time in staff member.'; },
     });
   }
 
   timeInSelected() {
-    const timedInAt = this.asIsoTime(this.timeinDate, this.timeinTime);
-    if (!timedInAt) { this.error = 'Use time in date MM/DD/YYYY and time hh:mm AM/PM.'; return; }
     this.selectedReturnVisitIds.forEach((visitId) => {
-      this.staffLocator.timeIn(visitId, timedInAt, this.remarks.trim()).subscribe({
+      this.staffLocator.timeIn(visitId, undefined, this.remarks.trim()).subscribe({
         next: () => this.refresh(),
         error: (response) => { this.error = response.error?.message ?? 'Unable to time in selected staff.'; },
       });

@@ -59,8 +59,8 @@ export class StaffLocatorService {
       return () => events.close();
     });
   }
-  timeOut(userId: number, companionIds: number[], locationId: number | null, destination: string, purpose: string, timedOutAt: string) { return this.http.post(`${this.apiUrl}/visits/timeout`, { userId, companionIds, locationId, destination, purpose, timedOutAt }, this.options()); }
-  timeIn(visitId: number, timedInAt: string, remarks: string) { return this.http.patch(`${this.apiUrl}/visits/${visitId}/timein`, { timedInAt, remarks }, this.options()); }
+  timeOut(userId: number, companionIds: number[], locationId: number | null, destination: string, purpose: string) { return this.http.post(`${this.apiUrl}/visits/timeout`, { userId, companionIds, locationId, destination, purpose }, this.options()); }
+  timeIn(visitId: number, timedInAt: string | undefined, remarks: string) { return this.http.patch(`${this.apiUrl}/visits/${visitId}/timein`, { timedInAt, remarks }, this.options()); }
   createUser(firstName: string, lastName: string, nickname: string, username: string, password: string, isAdmin = false) { return this.http.post(`${this.apiUrl}/users`, { firstName, lastName, nickname, username, password, isAdmin }, this.options()); }
   changePassword(currentPassword: string, newPassword: string) { return this.http.patch(`${this.apiUrl}/account/password`, { currentPassword, newPassword }, this.options()); }
   resetPassword(userId: number, newPassword: string) { return this.http.patch(`${this.apiUrl}/users/${userId}/password`, { newPassword }, this.options()); }
