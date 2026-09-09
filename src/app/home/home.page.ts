@@ -209,7 +209,8 @@ export class HomePage {
 
     const utterance = new SpeechSynthesisUtterance(announcement);
     const voices = speech.getVoices();
-    const preferredVoice = voices.find((voice) => /Microsoft (Aria|Jenny|Zira)|Google US English|Samantha|Karen|Victoria|Ava|Hazel/i.test(voice.name))
+    const preferredVoice = voices.find((voice) => voice.gender === 'female'
+      || /female|zira|jenny|samantha|victoria|ava|hazel/i.test(voice.name))
       ?? voices.find((voice) => /^en-(US|GB|AU|CA)\b/i.test(voice.lang) && /female|natural|neural|online/i.test(`${voice.name} ${voice.voiceURI}`))
       ?? voices.find((voice) => /^en-(US|GB|AU|CA)\b/i.test(voice.lang));
 
@@ -232,6 +233,8 @@ export class HomePage {
   }
 
   private async announceDashboardEvent(event: DashboardEvent) {
+    if (!this.session?.user?.isAdmin) return;
+
     if (event.groupId) {
       const eventKey = `${event.type}:${event.groupId}`;
       if (this.announcedGroupEvents.has(eventKey)) return;
