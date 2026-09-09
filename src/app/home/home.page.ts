@@ -209,8 +209,7 @@ export class HomePage {
 
     const utterance = new SpeechSynthesisUtterance(announcement);
     const voices = speech.getVoices();
-    const preferredVoice = voices.find((voice) => voice.gender === 'female'
-      || /female|zira|jenny|samantha|victoria|ava|hazel/i.test(voice.name))
+    const preferredVoice = voices.find((voice) => /female|zira|jenny|samantha|victoria|ava|hazel/i.test(voice.name))
       ?? voices.find((voice) => /^en-(US|GB|AU|CA)\b/i.test(voice.lang) && /female|natural|neural|online/i.test(`${voice.name} ${voice.voiceURI}`))
       ?? voices.find((voice) => /^en-(US|GB|AU|CA)\b/i.test(voice.lang));
 
