@@ -19,15 +19,21 @@ export class HomePage {
   isManualDestination = false;
   manualDestination = '';
   locationSearch = '';
+  destinationPickerOpen = false;
   timeoutDate = this.currentDateValue();
   timeoutTime = this.currentTimeValue();
   timeinDate = this.currentDateValue();
   timeinTime = this.currentTimeValue();
+  remarks = '';
   purpose = '';
   newFirstName = '';
   newLastName = '';
   newUsername = '';
   newPassword = '';
+  currentPassword = '';
+  changePasswordValue = '';
+  resetUserId: number | null = null;
+  resetPasswordValue = '';
   newLocation = '';
   message = '';
   error = '';
@@ -60,7 +66,9 @@ export class HomePage {
     return this.dashboard.locations.filter((location) => location.name.toLowerCase().includes(this.locationSearch.toLowerCase())).sort((first, second) => first.name.localeCompare(second.name));
   }
 
-  get availableCompanions() { return this.dashboard.users.filter((user) => user.id !== this.session?.user.id); }
+  get availableCompanions() {
+    return this.dashboard.users.filter((user) => user.id !== this.session?.user.id && !user.isAdmin);
+  }
 
   get returnGroupVisits() {
     const ownVisit = this.dashboard.activeVisits.find((visit) => visit.user.id === this.session?.user.id);
@@ -113,6 +121,22 @@ export class HomePage {
       window.setTimeout(() => void this.manualDestinationInput?.setFocus());
     }
   }
+
+  toggleLocation(locationId: number | 'manual') {
+    if (locationId === 'manual') {
+      this.isManualDestination = !this.isManualDestination;
+      if (!this.isManualDestination) this.manualDestination = '';
+      if (this.isManualDestination) window.setTimeout(() => void this.manualDestinationInput?.setFocus());
+      return;
+    }
+    this.selectedLocationIds = this.selectedLocationIds.includes(locationId)
+      ? this.selectedLocationIds.filter((id) => id !== locationId)
+      : [...this.selectedLocationIds, locationId];
+  }
+
+  openDestinationPicker() { this.destinationPickerOpen = true; }
+
+  closeDestinationPicker() { this.destinationPickerOpen = false; }
 
   private currentDateValue() {
     const now = new Date();
@@ -246,7 +270,7 @@ export class HomePage {
   timeIn(visit: ActiveVisit) {
     const timedInAt = this.asIsoTime(this.timeinDate, this.timeinTime);
     if (!timedInAt) { this.error = 'Use time in date MM/DD/YYYY and time hh:mm AM/PM.'; return; }
-    this.staffLocator.timeIn(visit.id, timedInAt).subscribe({
+    this.staffLocator.timeIn(visit.id, timedInAt, this.remarks).subscribe({
       next: () => { this.message = `${visit.user.username} is back in the office.`; this.refresh(); },
       error: () => { this.error = 'Unable to time in staff member.'; },
     });
@@ -256,12 +280,17 @@ export class HomePage {
     const timedInAt = this.asIsoTime(this.timeinDate, this.timeinTime);
     if (!timedInAt) { this.error = 'Use time in date MM/DD/YYYY and time hh:mm AM/PM.'; return; }
     this.selectedReturnVisitIds.forEach((visitId) => {
-      this.staffLocator.timeIn(visitId, timedInAt).subscribe({ next: () => this.refresh() });
+      this.staffLocator.timeIn(visitId, timedInAt, this.remarks.trim()).subscribe({
+        next: () => this.refresh(),
+        error: (response) => { this.error = response.error?.message ?? 'Unable to time in selected staff.'; },
+      });
     });
     this.selectedReturnVisitIds = [];
+    this.remarks = '';
   }
 
   createUser() {
+    this.message = ''; this.error = '';
     this.staffLocator.createUser(this.newFirstName, this.newLastName, this.newUsername, this.newPassword).subscribe({
       next: () => { this.message = 'User created.'; this.newFirstName = ''; this.newLastName = ''; this.newUsername = ''; this.newPassword = ''; this.refresh(); },
       error: (response) => { this.error = response.error?.message ?? 'Unable to create user.'; },
@@ -269,9 +298,27 @@ export class HomePage {
   }
 
   createLocation() {
+    this.message = ''; this.error = '';
     this.staffLocator.createLocation(this.newLocation).subscribe({
       next: () => { this.message = 'Location added.'; this.newLocation = ''; this.refresh(); },
       error: (response) => { this.error = response.error?.message ?? 'Unable to add location.'; },
+    });
+  }
+
+  changePassword() {
+    this.message = ''; this.error = '';
+    this.staffLocator.changePassword(this.currentPassword, this.changePasswordValue).subscribe({
+      next: () => { this.message = 'Password changed.'; this.currentPassword = ''; this.changePasswordValue = ''; },
+      error: (response) => { this.error = response.error?.message ?? 'Unable to change password.'; },
+    });
+  }
+
+  resetPassword() {
+    if (!this.resetUserId) return;
+    this.message = ''; this.error = '';
+    this.staffLocator.resetPassword(this.resetUserId, this.resetPasswordValue).subscribe({
+      next: () => { this.message = 'User password reset.'; this.resetUserId = null; this.resetPasswordValue = ''; },
+      error: (response) => { this.error = response.error?.message ?? 'Unable to reset password.'; },
     });
   }
 

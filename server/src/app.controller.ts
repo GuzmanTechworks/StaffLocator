@@ -1,4 +1,4 @@
-import { Body, Controller, Get, MessageEvent, Param, ParseIntPipe, Patch, Post, Sse, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, MessageEvent, Param, ParseIntPipe, Patch, Post, Req, Sse, UseGuards } from '@nestjs/common';
 import { Observable, map } from 'rxjs';
 import { AppService, DashboardEvent } from './app.service';
 import { AdminGuard } from './admin.guard';
@@ -20,6 +20,12 @@ export class AppController {
   @Get('dashboard')
   dashboard() { return this.appService.getDashboard(); }
 
+  @Patch('account/password')
+  @UseGuards(AuthGuard)
+  changePassword(@Req() request: { user: { id: number } }, @Body() body: { currentPassword: string; newPassword: string }) {
+    return this.appService.changePassword(request.user.id, body.currentPassword, body.newPassword);
+  }
+
   @Sse('dashboard/events')
   dashboardEvents(): Observable<MessageEvent> {
     return this.appService.dashboardEvents.pipe(map((event: DashboardEvent) => ({ data: event })));
@@ -29,6 +35,12 @@ export class AppController {
   @UseGuards(AuthGuard, AdminGuard)
   createUser(@Body() body: { firstName: string; lastName: string; username: string; password: string; isAdmin?: boolean }) {
     return this.appService.createUser(body.firstName, body.lastName, body.username, body.password, body.isAdmin);
+  }
+
+  @Patch('users/:id/password')
+  @UseGuards(AuthGuard, AdminGuard)
+  resetPassword(@Param('id', ParseIntPipe) id: number, @Body() body: { newPassword: string }) {
+    return this.appService.resetPassword(id, body.newPassword);
   }
 
   @Post('locations')
@@ -43,5 +55,5 @@ export class AppController {
 
   @Patch('visits/:id/timein')
   @UseGuards(AuthGuard)
-  timeIn(@Param('id', ParseIntPipe) id: number, @Body() body: { timedInAt?: string }) { return this.appService.timeIn(id, body.timedInAt); }
+  timeIn(@Param('id', ParseIntPipe) id: number, @Body() body: { timedInAt?: string; remarks?: string }) { return this.appService.timeIn(id, body.timedInAt, body.remarks); }
 }

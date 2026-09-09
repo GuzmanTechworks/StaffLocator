@@ -12,6 +12,7 @@ export interface ActiveVisit {
   destination: string;
   purpose: string;
   groupId?: string | null;
+  remarks: string;
   user: StaffUser;
   location: Location | null;
 }
@@ -58,7 +59,9 @@ export class StaffLocatorService {
     });
   }
   timeOut(userId: number, companionIds: number[], locationId: number | null, destination: string, purpose: string, timedOutAt: string) { return this.http.post(`${this.apiUrl}/visits/timeout`, { userId, companionIds, locationId, destination, purpose, timedOutAt }, this.options()); }
-  timeIn(visitId: number, timedInAt: string) { return this.http.patch(`${this.apiUrl}/visits/${visitId}/timein`, { timedInAt }, this.options()); }
+  timeIn(visitId: number, timedInAt: string, remarks: string) { return this.http.patch(`${this.apiUrl}/visits/${visitId}/timein`, { timedInAt, remarks }, this.options()); }
   createUser(firstName: string, lastName: string, username: string, password: string, isAdmin = false) { return this.http.post(`${this.apiUrl}/users`, { firstName, lastName, username, password, isAdmin }, this.options()); }
+  changePassword(currentPassword: string, newPassword: string) { return this.http.patch(`${this.apiUrl}/account/password`, { currentPassword, newPassword }, this.options()); }
+  resetPassword(userId: number, newPassword: string) { return this.http.patch(`${this.apiUrl}/users/${userId}/password`, { newPassword }, this.options()); }
   createLocation(name: string) { return this.http.post(`${this.apiUrl}/locations`, { name }, this.options()); }
 }

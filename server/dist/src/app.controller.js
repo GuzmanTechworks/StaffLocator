@@ -26,17 +26,23 @@ let AppController = class AppController {
     health() { return this.appService.getHealth(); }
     login(body) { return this.appService.login(body.username, body.password); }
     dashboard() { return this.appService.getDashboard(); }
+    changePassword(request, body) {
+        return this.appService.changePassword(request.user.id, body.currentPassword, body.newPassword);
+    }
     dashboardEvents() {
         return this.appService.dashboardEvents.pipe((0, rxjs_1.map)((event) => ({ data: event })));
     }
     createUser(body) {
         return this.appService.createUser(body.firstName, body.lastName, body.username, body.password, body.isAdmin);
     }
+    resetPassword(id, body) {
+        return this.appService.resetPassword(id, body.newPassword);
+    }
     createLocation(body) { return this.appService.createLocation(body.name); }
     timeOut(body) {
         return this.appService.timeOut(Number(body.userId), body.companionIds ?? [], body.locationId ? Number(body.locationId) : null, body.destination, body.purpose, body.timedOutAt);
     }
-    timeIn(id, body) { return this.appService.timeIn(id, body.timedInAt); }
+    timeIn(id, body) { return this.appService.timeIn(id, body.timedInAt, body.remarks); }
 };
 exports.AppController = AppController;
 __decorate([
@@ -65,6 +71,15 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], AppController.prototype, "dashboard", null);
 __decorate([
+    (0, common_1.Patch)('account/password'),
+    (0, common_1.UseGuards)(auth_guard_1.AuthGuard),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", void 0)
+], AppController.prototype, "changePassword", null);
+__decorate([
     (0, common_1.Sse)('dashboard/events'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
@@ -78,6 +93,15 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], AppController.prototype, "createUser", null);
+__decorate([
+    (0, common_1.Patch)('users/:id/password'),
+    (0, common_1.UseGuards)(auth_guard_1.AuthGuard, admin_guard_1.AdminGuard),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Object]),
+    __metadata("design:returntype", void 0)
+], AppController.prototype, "resetPassword", null);
 __decorate([
     (0, common_1.Post)('locations'),
     (0, common_1.UseGuards)(auth_guard_1.AuthGuard, admin_guard_1.AdminGuard),

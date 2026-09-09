@@ -35,6 +35,7 @@ model Visit {
   timedOutAt DateTime  @default(now())
   timedInAt  DateTime?
   groupId    String?  @db.VarChar(36)
+  remarks    String   @default("") @db.VarChar(255)
   user       User      @relation(fields: [userId], references: [id])
   location   Location? @relation(fields: [locationId], references: [id])
 

@@ -35,19 +35,58 @@
 @import "@ionic/angular/css/palettes/dark.class.css";
 
 :root {
+	color-scheme: light;
 	--app-background: #f4f7f5;
 	--app-surface: #ffffff;
 	--app-surface-muted: #f7faf8;
 	--app-ink: #182522;
 	--app-muted: #667873;
 	--app-line: #dce7e2;
+	--ion-background-color: var(--app-background);
+	--ion-text-color: var(--app-ink);
+	--ion-color-step-50: #f7faf8;
+	--ion-color-step-100: #eef4f1;
+	--ion-color-step-150: #e4ede9;
+	--ion-color-step-850: #2d3a36;
+	--ion-color-step-900: #202b27;
+}
+
+html, body, ion-app {
+	background: var(--app-background);
+	color: var(--app-ink);
+}
+
+ion-content {
+	--background: var(--app-background);
+	--color: var(--app-ink);
+}
+
+ion-popover {
+	--width: min(390px, calc(100vw - 24px));
+	--max-height: 80vh;
+	--backdrop-opacity: .28;
 }
 
 html.ion-palette-dark {
+	color-scheme: dark;
 	--app-background: #111816;
 	--app-surface: #1a2421;
 	--app-surface-muted: #202d29;
 	--app-ink: #edf5f1;
 	--app-muted: #9db0a8;
 	--app-line: #34453f;
+	--ion-background-color: var(--app-background);
+	--ion-text-color: var(--app-ink);
+	--ion-color-step-50: #202d29;
+	--ion-color-step-100: #263631;
+	--ion-color-step-150: #2d403a;
+	--ion-color-step-850: #d5e5de;
+	--ion-color-step-900: #edf5f1;
+}
+
+html.ion-palette-dark body,
+html.ion-palette-dark ion-app,
+html.ion-palette-dark ion-content {
+	background: var(--app-background);
+	color: var(--app-ink);
 }

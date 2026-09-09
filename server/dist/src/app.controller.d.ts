@@ -61,6 +61,7 @@ export declare class AppController {
             timedOutAt: Date;
             timedInAt: Date | null;
             groupId: string | null;
+            remarks: string;
         })[];
         history: ({
             user: {
@@ -84,7 +85,18 @@ export declare class AppController {
             timedOutAt: Date;
             timedInAt: Date | null;
             groupId: string | null;
+            remarks: string;
         })[];
+    }>;
+    changePassword(request: {
+        user: {
+            id: number;
+        };
+    }, body: {
+        currentPassword: string;
+        newPassword: string;
+    }): Promise<{
+        message: string;
     }>;
     dashboardEvents(): Observable<MessageEvent>;
     createUser(body: {
@@ -99,6 +111,11 @@ export declare class AppController {
         firstName: string;
         lastName: string;
         isAdmin: boolean;
+    }>;
+    resetPassword(id: number, body: {
+        newPassword: string;
+    }): Promise<{
+        message: string;
     }>;
     createLocation(body: {
         name: string;
@@ -140,9 +157,11 @@ export declare class AppController {
         timedOutAt: Date;
         timedInAt: Date | null;
         groupId: string | null;
+        remarks: string;
     })[]>;
     timeIn(id: number, body: {
         timedInAt?: string;
+        remarks?: string;
     }): Promise<{
         user: {
             id: number;
@@ -168,5 +187,6 @@ export declare class AppController {
         timedOutAt: Date;
         timedInAt: Date | null;
         groupId: string | null;
+        remarks: string;
     }>;
 }

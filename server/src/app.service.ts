@@ -55,6 +55,22 @@ export class AppService {
     return this.prisma.user.create({ data: { firstName: firstName.trim(), lastName: lastName.trim(), username: username.trim(), password: passwordHash, isAdmin }, select: { id: true, firstName: true, lastName: true, username: true, isAdmin: true } });
   }
 
+  async changePassword(userId: number, currentPassword: string, newPassword: string) {
+    if (!currentPassword || !newPassword || newPassword.length < 6) throw new BadRequestException('Current password and a new password of at least 6 characters are required.');
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user || !(await bcrypt.compare(currentPassword, user.password))) throw new BadRequestException('Current password is incorrect.');
+    await this.prisma.user.update({ where: { id: userId }, data: { password: await bcrypt.hash(newPassword, 10) } });
+    return { message: 'Password changed.' };
+  }
+
+  async resetPassword(userId: number, newPassword: string) {
+    if (!newPassword || newPassword.length < 6) throw new BadRequestException('New password must be at least 6 characters.');
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found.');
+    await this.prisma.user.update({ where: { id: userId }, data: { password: await bcrypt.hash(newPassword, 10) } });
+    return { message: 'Password reset.' };
+  }
+
   async createLocation(name: string) {
     if (!name?.trim()) throw new BadRequestException('Location name is required.');
     return this.prisma.location.create({ data: { name: name.trim() } });
@@ -85,13 +101,13 @@ export class AppService {
     return this.prisma.visit.findMany({ where: { groupId }, include: { user: true, location: true } });
   }
 
-  async timeIn(visitId: number, timedInAt?: string) {
+  async timeIn(visitId: number, timedInAt?: string, remarks = '') {
     const existingVisit = await this.prisma.visit.findUnique({ where: { id: visitId } });
     if (!existingVisit) throw new NotFoundException('Visit not found.');
     if (existingVisit.timedInAt) throw new BadRequestException('This visit is already closed.');
     const timeInDate = timedInAt ? new Date(timedInAt) : new Date();
     if (Number.isNaN(timeInDate.getTime())) throw new BadRequestException('Invalid time in.');
-    const visit = await this.prisma.visit.update({ where: { id: visitId }, data: { timedInAt: timeInDate }, include: { user: true, location: true } });
+    const visit = await this.prisma.visit.update({ where: { id: visitId }, data: { timedInAt: timeInDate, remarks: remarks.trim().slice(0, 255) }, include: { user: true, location: true } });
     this.dashboardEvents.next({
       type: 'timein',
       user: { firstName: visit.user.firstName, lastName: visit.user.lastName, username: visit.user.username },

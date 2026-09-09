@@ -66,6 +66,7 @@ export declare class AppService {
             timedOutAt: Date;
             timedInAt: Date | null;
             groupId: string | null;
+            remarks: string;
         })[];
         history: ({
             user: {
@@ -89,6 +90,7 @@ export declare class AppService {
             timedOutAt: Date;
             timedInAt: Date | null;
             groupId: string | null;
+            remarks: string;
         })[];
     }>;
     createUser(firstName: string, lastName: string, username: string, password: string, isAdmin?: boolean): Promise<{
@@ -97,6 +99,12 @@ export declare class AppService {
         firstName: string;
         lastName: string;
         isAdmin: boolean;
+    }>;
+    changePassword(userId: number, currentPassword: string, newPassword: string): Promise<{
+        message: string;
+    }>;
+    resetPassword(userId: number, newPassword: string): Promise<{
+        message: string;
     }>;
     createLocation(name: string): Promise<{
         id: number;
@@ -129,8 +137,9 @@ export declare class AppService {
         timedOutAt: Date;
         timedInAt: Date | null;
         groupId: string | null;
+        remarks: string;
     })[]>;
-    timeIn(visitId: number, timedInAt?: string): Promise<{
+    timeIn(visitId: number, timedInAt?: string, remarks?: string): Promise<{
         user: {
             id: number;
             username: string;
@@ -155,5 +164,6 @@ export declare class AppService {
         timedOutAt: Date;
         timedInAt: Date | null;
         groupId: string | null;
+        remarks: string;
     }>;
 }

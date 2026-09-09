@@ -59,6 +59,24 @@ let AppService = class AppService {
         const passwordHash = await bcryptjs_1.default.hash(password, 10);
         return this.prisma.user.create({ data: { firstName: firstName.trim(), lastName: lastName.trim(), username: username.trim(), password: passwordHash, isAdmin }, select: { id: true, firstName: true, lastName: true, username: true, isAdmin: true } });
     }
+    async changePassword(userId, currentPassword, newPassword) {
+        if (!currentPassword || !newPassword || newPassword.length < 6)
+            throw new common_1.BadRequestException('Current password and a new password of at least 6 characters are required.');
+        const user = await this.prisma.user.findUnique({ where: { id: userId } });
+        if (!user || !(await bcryptjs_1.default.compare(currentPassword, user.password)))
+            throw new common_1.BadRequestException('Current password is incorrect.');
+        await this.prisma.user.update({ where: { id: userId }, data: { password: await bcryptjs_1.default.hash(newPassword, 10) } });
+        return { message: 'Password changed.' };
+    }
+    async resetPassword(userId, newPassword) {
+        if (!newPassword || newPassword.length < 6)
+            throw new common_1.BadRequestException('New password must be at least 6 characters.');
+        const user = await this.prisma.user.findUnique({ where: { id: userId } });
+        if (!user)
+            throw new common_1.NotFoundException('User not found.');
+        await this.prisma.user.update({ where: { id: userId }, data: { password: await bcryptjs_1.default.hash(newPassword, 10) } });
+        return { message: 'Password reset.' };
+    }
     async createLocation(name) {
         if (!name?.trim())
             throw new common_1.BadRequestException('Location name is required.');
@@ -93,7 +111,7 @@ let AppService = class AppService {
         });
         return this.prisma.visit.findMany({ where: { groupId }, include: { user: true, location: true } });
     }
-    async timeIn(visitId, timedInAt) {
+    async timeIn(visitId, timedInAt, remarks = '') {
         const existingVisit = await this.prisma.visit.findUnique({ where: { id: visitId } });
         if (!existingVisit)
             throw new common_1.NotFoundException('Visit not found.');
@@ -102,7 +120,7 @@ let AppService = class AppService {
         const timeInDate = timedInAt ? new Date(timedInAt) : new Date();
         if (Number.isNaN(timeInDate.getTime()))
             throw new common_1.BadRequestException('Invalid time in.');
-        const visit = await this.prisma.visit.update({ where: { id: visitId }, data: { timedInAt: timeInDate }, include: { user: true, location: true } });
+        const visit = await this.prisma.visit.update({ where: { id: visitId }, data: { timedInAt: timeInDate, remarks: remarks.trim().slice(0, 255) }, include: { user: true, location: true } });
         this.dashboardEvents.next({
             type: 'timein',
             user: { firstName: visit.user.firstName, lastName: visit.user.lastName, username: visit.user.username },
