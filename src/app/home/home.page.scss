@@ -11,6 +11,14 @@
   --shadow: 0 14px 34px rgba(24, 37, 34, .07);
   display: block;
 }
+:host(.button-block) .button-native {
+    margin-left: 0px;
+    margin-right: 0px;
+    width: 100%;
+    clear: both;
+    contain: content;
+    color: blue;
+}
 :host-context(.ion-palette-dark) {
   --soft-green: #20342e;
   --shadow: 0 14px 34px rgba(0, 0, 0, .22);
@@ -18,8 +26,37 @@
 ion-content {
   --background: var(--app-background);
 }
-.doneBtn{
-  background-color: blue;
+ion-button.doneButton,
+.destination-popover ion-button.doneButton {
+  --background: #ffffff !important;
+  --background-hover: #f3f7ff !important;
+  --background-activated: #eef3ff !important;
+  --background-focused: #f3f7ff !important;
+  --color: #0d57ff !important;
+  --color-hover: #0d57ff !important;
+  --color-activated: #0d57ff !important;
+  --border-color: #0d57ff !important;
+  --box-shadow: none !important;
+  --border-radius: 8px;
+  opacity: 1;
+  font-weight: 700;
+}
+
+ion-button.doneButton::part(native),
+.destination-popover ion-button.doneButton::part(native) {
+  background: #ffffff !important;
+  border-color: #0d57ff !important;
+  color: #0d57ff !important;
+  opacity: 1 !important;
+}
+
+html.ion-palette-dark .destination-popover ion-button.doneButton,
+html.ion-palette-dark .destination-popover ion-button.doneButton::part(native) {
+  --background: #1d2a33 !important;
+  --color: #dfeeff !important;
+  background: #1d2a33 !important;
+  border-color: #7bb4ff !important;
+  color: #dfeeff !important;
 }
 .shell {
   position: relative;
@@ -192,9 +229,12 @@ ion-label {
 .account-tools form { display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; align-items: end; }
 .account-tools ion-button { margin: 0; --background: var(--deep-green); height: 48px; }
 .return-tools { display: grid; grid-template-columns: 1.2fr minmax(180px, 1fr) auto; gap: 12px; align-items: end; margin: 0 0 20px; padding: 16px; background: var(--soft-green); border: 1px solid #cfe4d9; border-radius: 8px; }
+.return-select-wrap { display: grid; gap: 6px; }
 .return-tools ion-label { color: var(--muted) !important; }
 .return-tools ion-select, .return-tools ion-input { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; min-height: 46px; padding: 0 10px; }
+.return-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
 .return-tools ion-button { margin: 0; --background: var(--deep-green); --border-radius: 6px; height: 46px; }
+.select-all-button { --background: transparent; --color: var(--deep-green); --border-color: var(--deep-green); }
 .notice { display: flex; align-items: center; gap: 9px; margin: 18px 0 0; padding: 12px 14px; border-radius: 7px; font-size: 13px; font-weight: 700; animation: notice-in .28s ease-out both; }
 .notice ion-icon { font-size: 20px; animation: notice-icon .45s ease-out both; }
 .notice.success { background: #e5f5eb; color: #17633f; border: 1px solid #bfe3ca; }

@@ -35,10 +35,11 @@ export class HomePage {
   currentDate = this.formatCurrentDate();
   isDarkMode = localStorage.getItem('staff-locator-theme') === 'dark';
   @ViewChild('manualDestinationInput') private manualDestinationInput?: IonInput;
-  private chimePromise: Promise<void> = Promise.resolve();
   private notificationAudioUnlocked = false;
   private notificationAudioContext?: AudioContext;
+  private readonly announcementChimePath = 'assets/audio/announcement-chime.mp3';
   private readonly announcedGroupEvents = new Set<string>();
+  private announcementQueue: Promise<void> = Promise.resolve();
 
   constructor(private readonly staffLocator: StaffLocatorService, private readonly changeDetector: ChangeDetectorRef) {
     this.applyTheme();
@@ -159,37 +160,39 @@ export class HomePage {
     return new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
   }
 
+  private formatAnnouncementDestination(destination: string) {
+    const destinations = destination
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean);
+
+    if (destinations.length <= 1) return destinations[0] ?? destination.trim();
+    if (destinations.length === 2) return `${destinations[0]} and ${destinations[1]}`;
+    return `${destinations.slice(0, -1).join(', ')}, and ${destinations[destinations.length - 1]}`;
+  }
+
   private async playAnnouncementChime() {
     if (!this.notificationAudioUnlocked) return;
-    const audioContext = this.notificationAudioContext;
-    if (!audioContext) return;
 
     try {
-      await audioContext.resume();
-      const start = audioContext.currentTime;
-      const playPaTone = (frequency: number, offset: number, duration: number) => {
-        const tone = audioContext.createOscillator();
-        const overtone = audioContext.createOscillator();
-        const toneGain = audioContext.createGain();
-        tone.type = 'sine';
-        tone.frequency.value = frequency;
-        overtone.type = 'triangle';
-        overtone.frequency.value = frequency * 2;
-        toneGain.gain.setValueAtTime(0.0001, start + offset);
-        toneGain.gain.exponentialRampToValueAtTime(0.13, start + offset + 0.06);
-        toneGain.gain.exponentialRampToValueAtTime(0.0001, start + offset + duration);
-        tone.connect(toneGain);
-        overtone.connect(toneGain);
-        toneGain.connect(audioContext.destination);
-        tone.start(start + offset);
-        overtone.start(start + offset);
-        tone.stop(start + offset + duration);
-        overtone.stop(start + offset + duration);
-      };
+      const chime = new Audio(this.announcementChimePath);
+      chime.volume = 1;
+      chime.currentTime = 0;
 
-      playPaTone(880, 0, 0.55);
-      playPaTone(660, 0.62, 0.7);
-      await new Promise<void>((resolve) => window.setTimeout(resolve, 1450));
+      await new Promise<void>((resolve) => {
+        const cleanup = () => {
+          chime.removeEventListener('ended', onEnded);
+          chime.removeEventListener('error', onError);
+          resolve();
+        };
+        const onEnded = () => cleanup();
+        const onError = () => cleanup();
+
+        chime.addEventListener('ended', onEnded, { once: true });
+        chime.addEventListener('error', onError, { once: true });
+
+        void chime.play().catch(() => cleanup());
+      });
     } catch {
       // Speech still provides the notification when audio is unavailable.
     }
@@ -197,13 +200,11 @@ export class HomePage {
 
   private async speakAnnouncement(announcement: string) {
     if (!('speechSynthesis' in window)) return;
-    await Promise.race([
-      this.chimePromise,
-      new Promise<void>((resolve) => window.setTimeout(resolve, 900)),
-    ]);
+
     const speech = window.speechSynthesis;
     speech.cancel();
     speech.resume();
+
     if (speech.getVoices().length === 0) {
       await new Promise<void>((resolve) => {
         const timeout = window.setTimeout(resolve, 250);
@@ -213,21 +214,29 @@ export class HomePage {
         }, { once: true });
       });
     }
+
     const utterance = new SpeechSynthesisUtterance(announcement);
     const voices = speech.getVoices();
     const preferredVoice = voices.find((voice) => /Microsoft (Aria|Jenny|Zira)|Google US English|Samantha|Karen|Victoria|Ava|Hazel/i.test(voice.name))
       ?? voices.find((voice) => /^en-(US|GB|AU|CA)\b/i.test(voice.lang) && /female|natural|neural|online/i.test(`${voice.name} ${voice.voiceURI}`))
       ?? voices.find((voice) => /^en-(US|GB|AU|CA)\b/i.test(voice.lang));
+
     if (preferredVoice) {
       utterance.voice = preferredVoice;
       utterance.lang = preferredVoice.lang;
     } else {
       utterance.lang = 'en-US';
     }
+
     utterance.pitch = 1;
     utterance.rate = 0.88;
     utterance.volume = 1;
-    speech.speak(utterance);
+
+    await new Promise<void>((resolve) => {
+      utterance.onend = () => resolve();
+      utterance.onerror = () => resolve();
+      speech.speak(utterance);
+    });
   }
 
   private async announceDashboardEvent(event: DashboardEvent) {
@@ -236,12 +245,22 @@ export class HomePage {
       if (this.announcedGroupEvents.has(eventKey)) return;
       this.announcedGroupEvents.add(eventKey);
     }
-    const names = event.users.map((user) => this.announcementName(user));
-    const name = names.length > 1 ? `${names.slice(0, -1).join(', ')}, and ${names[names.length - 1]}` : names[0];
-    const action = event.type === 'timeout' ? 'timed out' : 'timed in';
-    const movement = `going to ${event.destination} for ${event.purpose}`;
-    this.chimePromise = this.playAnnouncementChime();
-    await this.speakAnnouncement(`${name} ${action} at ${this.formatAnnouncementTime()}, ${movement}.`);
+
+    const task = async () => {
+      const names = event.users.map((user) => this.announcementName(user));
+      const name = names.length > 1 ? `${names.slice(0, -1).join(', ')}, and ${names[names.length - 1]}` : names[0];
+      const action = event.type === 'timeout' ? 'timed out' : 'timed in';
+      const destination = this.formatAnnouncementDestination(event.destination);
+      const movement = event.type === 'timeout'
+        ? `going to ${destination} for ${event.purpose}`
+        : `went to ${destination}`;
+
+      await this.playAnnouncementChime();
+      await this.speakAnnouncement(`${name} ${action} at ${this.formatAnnouncementTime()}, ${movement}.`);
+    };
+
+    this.announcementQueue = this.announcementQueue.then(task, task);
+    await this.announcementQueue;
   }
 
   private announcementName(user: DashboardEvent['users'][number]) {
@@ -269,6 +288,10 @@ export class HomePage {
       next: () => { this.message = `${visit.user.username} is back in the office.`; this.refresh(); },
       error: () => { this.error = 'Unable to time in staff member.'; },
     });
+  }
+
+  selectAllReturnVisits() {
+    this.selectedReturnVisitIds = this.returnGroupVisits.map((visit) => visit.id);
   }
 
   timeInSelected() {
