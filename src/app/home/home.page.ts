@@ -207,16 +207,6 @@ export class HomePage {
     speech.cancel();
     speech.resume();
 
-    if (speech.getVoices().length === 0) {
-      await new Promise<void>((resolve) => {
-        const timeout = window.setTimeout(resolve, 250);
-        speech.addEventListener('voiceschanged', () => {
-          window.clearTimeout(timeout);
-          resolve();
-        }, { once: true });
-      });
-    }
-
     const utterance = new SpeechSynthesisUtterance(announcement);
     const voices = speech.getVoices();
     const preferredVoice = voices.find((voice) => /Microsoft (Aria|Jenny|Zira)|Google US English|Samantha|Karen|Victoria|Ava|Hazel/i.test(voice.name))
