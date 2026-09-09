@@ -3,11 +3,13 @@ import { PrismaService } from './prisma.service';
 import { Subject } from 'rxjs';
 export type DashboardEvent = {
     type: 'timeout' | 'timein';
-    user: {
+    users: Array<{
         firstName: string;
         lastName: string;
+        nickname: string;
         username: string;
-    };
+    }>;
+    groupId: string | null;
     destination: string;
     purpose: string;
 };
@@ -22,6 +24,7 @@ export declare class AppService {
             id: number;
             firstName: string;
             lastName: string;
+            nickname: string;
             username: string;
             isAdmin: boolean;
         };
@@ -42,6 +45,7 @@ export declare class AppService {
             username: string;
             firstName: string;
             lastName: string;
+            nickname: string;
             isAdmin: boolean;
         }[];
         activeVisits: ({
@@ -50,6 +54,7 @@ export declare class AppService {
                 username: string;
                 firstName: string;
                 lastName: string;
+                nickname: string;
             };
             location: {
                 id: number;
@@ -74,6 +79,7 @@ export declare class AppService {
                 username: string;
                 firstName: string;
                 lastName: string;
+                nickname: string;
             };
             location: {
                 id: number;
@@ -93,11 +99,12 @@ export declare class AppService {
             remarks: string;
         })[];
     }>;
-    createUser(firstName: string, lastName: string, username: string, password: string, isAdmin?: boolean): Promise<{
+    createUser(firstName: string, lastName: string, nickname: string, username: string, password: string, isAdmin?: boolean): Promise<{
         id: number;
         username: string;
         firstName: string;
         lastName: string;
+        nickname: string;
         isAdmin: boolean;
     }>;
     changePassword(userId: number, currentPassword: string, newPassword: string): Promise<{
@@ -118,6 +125,7 @@ export declare class AppService {
             username: string;
             firstName: string;
             lastName: string;
+            nickname: string;
             password: string;
             isAdmin: boolean;
             createdAt: Date;
@@ -145,6 +153,7 @@ export declare class AppService {
             username: string;
             firstName: string;
             lastName: string;
+            nickname: string;
             password: string;
             isAdmin: boolean;
             createdAt: Date;

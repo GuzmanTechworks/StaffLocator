@@ -7,7 +7,8 @@ import { randomUUID } from 'node:crypto';
 
 export type DashboardEvent = {
   type: 'timeout' | 'timein';
-  user: { firstName: string; lastName: string; username: string };
+  users: Array<{ firstName: string; lastName: string; nickname: string; username: string }>;
+  groupId: string | null;
   destination: string;
   purpose: string;
 };
@@ -21,7 +22,7 @@ export class AppService {
   async login(username: string, password: string) {
     const user = await this.prisma.user.findUnique({ where: { username: username?.trim() } });
     if (!user || !(await bcrypt.compare(password ?? '', user.password))) throw new NotFoundException('Invalid username or password.');
-    const profile = { id: user.id, firstName: user.firstName, lastName: user.lastName, username: user.username, isAdmin: user.isAdmin };
+    const profile = { id: user.id, firstName: user.firstName, lastName: user.lastName, nickname: user.nickname, username: user.username, isAdmin: user.isAdmin };
     return { accessToken: await this.jwt.signAsync(profile), user: profile };
   }
 
@@ -32,15 +33,15 @@ export class AppService {
   async getDashboard() {
     const [locations, users, visits, history] = await Promise.all([
       this.prisma.location.findMany({ where: { active: true }, orderBy: { name: 'asc' } }),
-      this.prisma.user.findMany({ select: { id: true, firstName: true, lastName: true, username: true, isAdmin: true }, orderBy: { lastName: 'asc' } }),
+      this.prisma.user.findMany({ select: { id: true, firstName: true, lastName: true, nickname: true, username: true, isAdmin: true }, orderBy: { lastName: 'asc' } }),
       this.prisma.visit.findMany({
         where: { timedInAt: null },
-        include: { user: { select: { id: true, firstName: true, lastName: true, username: true } }, location: true },
+        include: { user: { select: { id: true, firstName: true, lastName: true, nickname: true, username: true } }, location: true },
         orderBy: { timedOutAt: 'desc' },
       }),
       this.prisma.visit.findMany({
         where: { timedInAt: { not: null } },
-        include: { user: { select: { id: true, firstName: true, lastName: true, username: true } }, location: true },
+        include: { user: { select: { id: true, firstName: true, lastName: true, nickname: true, username: true } }, location: true },
         orderBy: { timedInAt: 'desc' },
         take: 100,
       }),
@@ -49,10 +50,10 @@ export class AppService {
     return { locations, users, activeVisits: visits, history };
   }
 
-  async createUser(firstName: string, lastName: string, username: string, password: string, isAdmin = false) {
-    if (!firstName?.trim() || !lastName?.trim() || !username?.trim() || !password) throw new BadRequestException('First name, last name, username, and password are required.');
+  async createUser(firstName: string, lastName: string, nickname: string, username: string, password: string, isAdmin = false) {
+    if (!firstName?.trim() || !lastName?.trim() || !nickname?.trim() || !username?.trim() || !password) throw new BadRequestException('First name, last name, nickname, username, and password are required.');
     const passwordHash = await bcrypt.hash(password, 10);
-    return this.prisma.user.create({ data: { firstName: firstName.trim(), lastName: lastName.trim(), username: username.trim(), password: passwordHash, isAdmin }, select: { id: true, firstName: true, lastName: true, username: true, isAdmin: true } });
+    return this.prisma.user.create({ data: { firstName: firstName.trim(), lastName: lastName.trim(), nickname: nickname.trim(), username: username.trim(), password: passwordHash, isAdmin }, select: { id: true, firstName: true, lastName: true, nickname: true, username: true, isAdmin: true } });
   }
 
   async changePassword(userId: number, currentPassword: string, newPassword: string) {
@@ -94,7 +95,8 @@ export class AppService {
     await this.prisma.visit.createMany({ data: memberIds.map((memberId) => ({ userId: memberId, groupId, locationId, destination: destination.trim(), purpose: purpose.trim(), timedOutAt: timeOutDate })) });
     this.dashboardEvents.next({
       type: 'timeout',
-      user: { firstName: user.firstName, lastName: user.lastName, username: user.username },
+      users: memberIds.map((memberId) => users.find((item) => item.id === memberId)!).map((item) => ({ firstName: item.firstName, lastName: item.lastName, nickname: item.nickname, username: item.username })),
+      groupId,
       destination: destination.trim(),
       purpose: purpose.trim(),
     });
@@ -102,15 +104,19 @@ export class AppService {
   }
 
   async timeIn(visitId: number, timedInAt?: string, remarks = '') {
-    const existingVisit = await this.prisma.visit.findUnique({ where: { id: visitId } });
+    const existingVisit = await this.prisma.visit.findUnique({ where: { id: visitId }, include: { user: true } });
     if (!existingVisit) throw new NotFoundException('Visit not found.');
     if (existingVisit.timedInAt) throw new BadRequestException('This visit is already closed.');
     const timeInDate = timedInAt ? new Date(timedInAt) : new Date();
     if (Number.isNaN(timeInDate.getTime())) throw new BadRequestException('Invalid time in.');
     const visit = await this.prisma.visit.update({ where: { id: visitId }, data: { timedInAt: timeInDate, remarks: remarks.trim().slice(0, 255) }, include: { user: true, location: true } });
+    const groupVisits = visit.groupId
+      ? await this.prisma.visit.findMany({ where: { groupId: visit.groupId }, include: { user: true }, orderBy: { id: 'asc' } })
+      : [visit];
     this.dashboardEvents.next({
       type: 'timein',
-      user: { firstName: visit.user.firstName, lastName: visit.user.lastName, username: visit.user.username },
+      users: groupVisits.map((item) => ({ firstName: item.user.firstName, lastName: item.user.lastName, nickname: item.user.nickname, username: item.user.username })),
+      groupId: visit.groupId,
       destination: visit.destination,
       purpose: visit.purpose,
     });

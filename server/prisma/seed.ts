@@ -9,14 +9,14 @@ async function main() {
 
   await prisma.user.upsert({
     where: { username: 'isd.admin' },
-    update: { firstName: 'ISD', lastName: 'Administrator', password: administratorPassword, isAdmin: true },
-    create: { firstName: 'ISD', lastName: 'Administrator', username: 'isd.admin', password: administratorPassword, isAdmin: true },
+    update: { firstName: 'ISD', lastName: 'Administrator', nickname: 'Admin', password: administratorPassword, isAdmin: true },
+    create: { firstName: 'ISD', lastName: 'Administrator', nickname: 'Admin', username: 'isd.admin', password: administratorPassword, isAdmin: true },
   });
 
   await prisma.user.upsert({
     where: { username: '0000004457' },
-    update: { firstName: 'Staff', lastName: 'Member', password: userPassword, isAdmin: false },
-    create: { firstName: 'Staff', lastName: 'Member', username: '0000004457', password: userPassword, isAdmin: false },
+    update: { firstName: 'Staff', lastName: 'Member', nickname: 'Staff', password: userPassword, isAdmin: false },
+    create: { firstName: 'Staff', lastName: 'Member', nickname: 'Staff', username: '0000004457', password: userPassword, isAdmin: false },
   });
 
   for (const name of ['Main Office', 'Finance', 'Human Resources', 'IT Help Desk']) {

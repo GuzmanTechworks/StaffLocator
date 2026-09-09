@@ -21,6 +21,7 @@ export declare class AppController {
             id: number;
             firstName: string;
             lastName: string;
+            nickname: string;
             username: string;
             isAdmin: boolean;
         };
@@ -37,6 +38,7 @@ export declare class AppController {
             username: string;
             firstName: string;
             lastName: string;
+            nickname: string;
             isAdmin: boolean;
         }[];
         activeVisits: ({
@@ -45,6 +47,7 @@ export declare class AppController {
                 username: string;
                 firstName: string;
                 lastName: string;
+                nickname: string;
             };
             location: {
                 id: number;
@@ -69,6 +72,7 @@ export declare class AppController {
                 username: string;
                 firstName: string;
                 lastName: string;
+                nickname: string;
             };
             location: {
                 id: number;
@@ -102,6 +106,7 @@ export declare class AppController {
     createUser(body: {
         firstName: string;
         lastName: string;
+        nickname: string;
         username: string;
         password: string;
         isAdmin?: boolean;
@@ -110,6 +115,7 @@ export declare class AppController {
         username: string;
         firstName: string;
         lastName: string;
+        nickname: string;
         isAdmin: boolean;
     }>;
     resetPassword(id: number, body: {
@@ -138,6 +144,7 @@ export declare class AppController {
             username: string;
             firstName: string;
             lastName: string;
+            nickname: string;
             password: string;
             isAdmin: boolean;
             createdAt: Date;
@@ -168,6 +175,7 @@ export declare class AppController {
             username: string;
             firstName: string;
             lastName: string;
+            nickname: string;
             password: string;
             isAdmin: boolean;
             createdAt: Date;

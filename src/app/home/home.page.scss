@@ -18,6 +18,9 @@
 ion-content {
   --background: var(--app-background);
 }
+.doneBtn{
+  background-color: blue;
+}
 .shell {
   width: min(100%, 1320px);
   margin: auto;
@@ -140,13 +143,13 @@ ion-input { --color: var(--ink); --placeholder-color: var(--muted); }
 .destination-trigger span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .destination-trigger ion-icon { flex: 0 0 auto; color: var(--green); }
 .destination-options { display: flex; flex-wrap: wrap; gap: 8px; max-height: 96px; overflow-y: auto; padding: 4px 0 8px; }
-.destination-options ion-checkbox { --border-color: var(--green); --checkbox-background-checked: var(--green); --border-color-checked: var(--green); --checkmark-color: #fff; color: var(--ink); font-size: 12px; }
+.destination-options ion-checkbox { --border-color: blue; --checkbox-background-checked: blue; --border-color-checked: blue; --checkmark-color: #fff; color: var(--ink); font-size: 12px; }
 .destination-popover { width: 100%; max-height: 70vh; box-sizing: border-box; overflow: hidden; padding: 18px; background: var(--surface); color: var(--ink); }
 .popover-heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; color: var(--deep-green); }
 .popover-heading button { border: 0; background: transparent; color: var(--muted); font-size: 20px; cursor: pointer; }
 .destination-popover ion-searchbar { margin: 0 0 8px; width: 100%; }
 .destination-popover .destination-options { max-height: min(300px, 42vh); display: flex; flex-direction: column; flex-wrap: nowrap; gap: 2px; overflow-x: hidden; overflow-y: auto; padding: 2px 4px 8px 0; }
-.destination-popover .destination-options ion-checkbox { display: flex; width: 100%; min-height: 40px; box-sizing: border-box; margin: 0; padding: 8px 6px; --size: 18px; --checkbox-background-checked: var(--green); --border-color-checked: var(--green); --border-color: var(--green); --checkmark-color: #fff; color: var(--ink); }
+.destination-popover .destination-options ion-checkbox { display: flex; width: 100%; min-height: 40px; box-sizing: border-box; margin: 0; padding: 8px 6px; --size: 18px; --checkbox-background-checked: blue; --border-color-checked: blue; --border-color: blue; --checkmark-color: #fff; color: var(--ink); }
 .destination-popover .destination-options ion-checkbox::part(container) { flex: 0 0 auto; }
 .destination-popover > ion-input { display: block; width: 100%; margin-top: 8px; }
 .destination-popover ion-button { margin: 8px 0 0; --background: var(--deep-green); --color: #fff; }

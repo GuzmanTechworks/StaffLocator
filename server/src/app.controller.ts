@@ -33,8 +33,8 @@ export class AppController {
 
   @Post('users')
   @UseGuards(AuthGuard, AdminGuard)
-  createUser(@Body() body: { firstName: string; lastName: string; username: string; password: string; isAdmin?: boolean }) {
-    return this.appService.createUser(body.firstName, body.lastName, body.username, body.password, body.isAdmin);
+  createUser(@Body() body: { firstName: string; lastName: string; nickname: string; username: string; password: string; isAdmin?: boolean }) {
+    return this.appService.createUser(body.firstName, body.lastName, body.nickname, body.username, body.password, body.isAdmin);
   }
 
   @Patch('users/:id/password')

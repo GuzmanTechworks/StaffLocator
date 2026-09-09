@@ -28,6 +28,7 @@ export class HomePage {
   purpose = '';
   newFirstName = '';
   newLastName = '';
+  newNickname = '';
   newUsername = '';
   newPassword = '';
   currentPassword = '';
@@ -43,6 +44,7 @@ export class HomePage {
   private chimePromise: Promise<void> = Promise.resolve();
   private notificationAudioUnlocked = false;
   private notificationAudioContext?: AudioContext;
+  private readonly announcedGroupEvents = new Set<string>();
 
   constructor(private readonly staffLocator: StaffLocatorService, private readonly changeDetector: ChangeDetectorRef) {
     this.applyTheme();
@@ -174,6 +176,8 @@ export class HomePage {
 
   private formatCurrentTime() { return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }); }
 
+  formatDate(value: string | null | undefined) { return value ? new Date(value).toLocaleDateString() : '-'; }
+
   private formatAnnouncementTime() {
     return new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }).replace(/\s/g, '');
   }
@@ -241,13 +245,22 @@ export class HomePage {
   }
 
   private async announceDashboardEvent(event: DashboardEvent) {
-    const name = `${event.user.firstName} ${event.user.lastName}`.trim() || event.user.username;
+    if (event.groupId) {
+      const eventKey = `${event.type}:${event.groupId}`;
+      if (this.announcedGroupEvents.has(eventKey)) return;
+      this.announcedGroupEvents.add(eventKey);
+    }
+    const names = event.users.map((user) => this.announcementName(user));
+    const name = names.length > 1 ? `${names.slice(0, -1).join(', ')}, and ${names[names.length - 1]}` : names[0];
     const action = event.type === 'timeout' ? 'timed out' : 'timed in';
-    const movement = event.type === 'timeout'
-      ? `going to ${event.destination} for ${event.purpose}`
-      : `returned from ${event.destination} for ${event.purpose}`;
+    const movement = `going to ${event.destination} for ${event.purpose}`;
     this.chimePromise = this.playAnnouncementChime();
     await this.speakAnnouncement(`${name} ${action} at ${this.formatAnnouncementTime()}, ${movement}.`);
+  }
+
+  private announcementName(user: DashboardEvent['users'][number]) {
+    const nickname = user.nickname.trim();
+    return nickname.toLowerCase() === 'ches' ? 'Chess' : nickname || `${user.firstName} ${user.lastName}`.trim() || user.username;
   }
 
   private loadDashboard() {
@@ -291,8 +304,8 @@ export class HomePage {
 
   createUser() {
     this.message = ''; this.error = '';
-    this.staffLocator.createUser(this.newFirstName, this.newLastName, this.newUsername, this.newPassword).subscribe({
-      next: () => { this.message = 'User created.'; this.newFirstName = ''; this.newLastName = ''; this.newUsername = ''; this.newPassword = ''; this.refresh(); },
+    this.staffLocator.createUser(this.newFirstName, this.newLastName, this.newNickname, this.newUsername, this.newPassword).subscribe({
+      next: () => { this.message = 'User created.'; this.newFirstName = ''; this.newLastName = ''; this.newNickname = ''; this.newUsername = ''; this.newPassword = ''; this.refresh(); },
       error: (response) => { this.error = response.error?.message ?? 'Unable to create user.'; },
     });
   }

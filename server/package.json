@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start:dev": "nest start --watch",
+    "dev": "nest start --watch",
     "build": "nest build",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",

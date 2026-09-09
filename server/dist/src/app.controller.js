@@ -33,7 +33,7 @@ let AppController = class AppController {
         return this.appService.dashboardEvents.pipe((0, rxjs_1.map)((event) => ({ data: event })));
     }
     createUser(body) {
-        return this.appService.createUser(body.firstName, body.lastName, body.username, body.password, body.isAdmin);
+        return this.appService.createUser(body.firstName, body.lastName, body.nickname, body.username, body.password, body.isAdmin);
     }
     resetPassword(id, body) {
         return this.appService.resetPassword(id, body.newPassword);
