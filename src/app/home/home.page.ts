@@ -97,14 +97,14 @@ export class HomePage {
   @HostListener('document:pointerdown')
   @HostListener('document:keydown')
   unlockNotificationAudio() {
-    this.tryUnlockNotificationAudio();
+    void this.tryUnlockNotificationAudio();
   }
 
-  private forceUnlockNotificationAudio() {
-    this.tryUnlockNotificationAudio(true);
+  private async forceUnlockNotificationAudio() {
+    await this.tryUnlockNotificationAudio(true);
   }
 
-  private tryUnlockNotificationAudio(force = false) {
+  private async tryUnlockNotificationAudio(force = false) {
     if (!force && this.notificationAudioUnlocked) return;
 
     this.notificationAudioUnlocked = true;
@@ -113,7 +113,7 @@ export class HomePage {
     if (AudioContextClass) {
       this.notificationAudioContext ??= new AudioContextClass();
       if (this.notificationAudioContext.state === 'suspended') {
-        void this.notificationAudioContext.resume();
+        await this.notificationAudioContext.resume();
       }
     }
 
@@ -187,27 +187,40 @@ export class HomePage {
 
   private async playAnnouncementChime() {
     try {
-      this.unlockNotificationAudio();
+      await this.forceUnlockNotificationAudio();
 
-      const chime = new Audio(this.announcementChimePath);
-      chime.preload = 'auto';
-      chime.volume = 1;
-      chime.currentTime = 0;
+      const attemptPlay = async (retryCount = 0): Promise<void> => {
+        const chime = new Audio(this.announcementChimePath);
+        chime.preload = 'auto';
+        chime.volume = 1;
+        chime.currentTime = 0;
 
-      await new Promise<void>((resolve) => {
-        const cleanup = () => {
-          chime.removeEventListener('ended', onEnded);
-          chime.removeEventListener('error', onError);
-          resolve();
-        };
-        const onEnded = () => cleanup();
-        const onError = () => cleanup();
+        await new Promise<void>((resolve) => {
+          const cleanup = () => {
+            chime.removeEventListener('ended', onEnded);
+            chime.removeEventListener('error', onError);
+            resolve();
+          };
+          const onEnded = () => cleanup();
+          const onError = () => cleanup();
 
-        chime.addEventListener('ended', onEnded, { once: true });
-        chime.addEventListener('error', onError, { once: true });
+          chime.addEventListener('ended', onEnded, { once: true });
+          chime.addEventListener('error', onError, { once: true });
 
-        void chime.play().catch(() => cleanup());
-      });
+          void chime.play()
+            .catch(() => {
+              if (retryCount < 1) {
+                window.setTimeout(() => {
+                  void attemptPlay(retryCount + 1).then(resolve);
+                }, 250);
+                return;
+              }
+              cleanup();
+            });
+        });
+      };
+
+      await attemptPlay();
     } catch {
       // Speech still provides the notification when audio is unavailable.
     }
@@ -273,10 +286,6 @@ export class HomePage {
   }
 
   private async announceDashboardEvent(event: DashboardEvent) {
-    if (!this.session?.user?.isAdmin) return;
-
-    this.forceUnlockNotificationAudio();
-
     if (event.groupId) {
       const eventKey = `${event.type}:${event.groupId}`;
       if (this.announcedGroupEvents.has(eventKey)) return;
@@ -284,6 +293,8 @@ export class HomePage {
     }
 
     const task = async () => {
+      if (!this.session?.user?.isAdmin) return;
+
       const names = event.users.map((user) => this.announcementName(user));
       const name = names.length > 1 ? `${names.slice(0, -1).join(', ')}, and ${names[names.length - 1]}` : names[0];
       const action = event.type === 'timeout' ? 'timed out' : 'timed in';
@@ -292,6 +303,7 @@ export class HomePage {
         ? `going to ${destination} for ${event.purpose}`
         : `went to ${destination}`;
 
+      await this.forceUnlockNotificationAudio();
       await this.playAnnouncementChime();
       await this.speakAnnouncement(`${name} ${action} at ${this.formatAnnouncementTime()}, ${movement}.`);
     };
