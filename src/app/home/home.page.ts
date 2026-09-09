@@ -1,7 +1,7 @@
 import { Directive, HostListener, ViewChild } from '@angular/core';
 import { ChangeDetectorRef } from '@angular/core';
 import { IonInput } from '@ionic/angular';
-import { interval } from 'rxjs';
+import { interval, Subscription } from 'rxjs';
 import { ActiveVisit, DashboardData, DashboardEvent, StaffLocatorService } from '../core/staff-locator.service';
 
 @Directive()
@@ -40,6 +40,7 @@ export class HomePage {
   private readonly announcementChimePath = 'assets/audio/announcement-chime.mp3';
   private readonly announcedGroupEvents = new Set<string>();
   private announcementQueue: Promise<void> = Promise.resolve();
+  private dashboardEventsSubscription?: Subscription;
 
   constructor(private readonly staffLocator: StaffLocatorService, private readonly changeDetector: ChangeDetectorRef) {
     this.applyTheme();
@@ -159,9 +160,17 @@ export class HomePage {
 
   ionViewDidEnter() {
     this.loadDashboard();
-    this.staffLocator.dashboardEvents().subscribe({
+
+    if (this.dashboardEventsSubscription) return;
+
+    this.dashboardEventsSubscription = this.staffLocator.dashboardEvents().subscribe({
       next: (event) => { this.refresh(); void this.announceDashboardEvent(event); },
     });
+  }
+
+  ionViewDidLeave() {
+    this.dashboardEventsSubscription?.unsubscribe();
+    this.dashboardEventsSubscription = undefined;
   }
 
   private formatCurrentTime() { return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }); }
@@ -286,11 +295,16 @@ export class HomePage {
   }
 
   private async announceDashboardEvent(event: DashboardEvent) {
-    if (event.groupId) {
-      const eventKey = `${event.type}:${event.groupId}`;
-      if (this.announcedGroupEvents.has(eventKey)) return;
-      this.announcedGroupEvents.add(eventKey);
-    }
+    const eventKey = [
+      event.type,
+      event.groupId ?? 'single',
+      event.destination,
+      event.purpose,
+      event.users.map((user) => user.username).join('|'),
+    ].join(':');
+
+    if (this.announcedGroupEvents.has(eventKey)) return;
+    this.announcedGroupEvents.add(eventKey);
 
     const task = async () => {
       if (!this.session?.user?.isAdmin) return;
