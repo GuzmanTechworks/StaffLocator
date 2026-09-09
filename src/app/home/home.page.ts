@@ -148,7 +148,6 @@ export class HomePage {
     this.loadDashboard();
     this.staffLocator.dashboardEvents().subscribe({
       next: (event) => { this.refresh(); void this.announceDashboardEvent(event); },
-      error: () => { this.error = 'Live updates disconnected. Refresh the page to reconnect.'; },
     });
   }
 
@@ -174,8 +173,6 @@ export class HomePage {
   }
 
   private async playAnnouncementChime() {
-    if (!this.notificationAudioUnlocked) return;
-
     try {
       const chime = new Audio(this.announcementChimePath);
       chime.volume = 1;
@@ -208,10 +205,38 @@ export class HomePage {
     speech.resume();
 
     const utterance = new SpeechSynthesisUtterance(announcement);
-    const voices = speech.getVoices();
-    const preferredVoice = voices.find((voice) => /female|zira|jenny|samantha|victoria|ava|hazel/i.test(voice.name))
-      ?? voices.find((voice) => /^en-(US|GB|AU|CA)\b/i.test(voice.lang) && /female|natural|neural|online/i.test(`${voice.name} ${voice.voiceURI}`))
-      ?? voices.find((voice) => /^en-(US|GB|AU|CA)\b/i.test(voice.lang));
+
+    const pickFemaleVoice = () => {
+      const voices = speech.getVoices();
+      const femaleVoice = voices.find((voice) => /zira|jenny|samantha|victoria|ava|hazel|female/i.test(`${voice.name} ${voice.voiceURI}`))
+        ?? voices.find((voice) => /^en-(US|GB|AU|CA)\b/i.test(voice.lang) && /zira|jenny|samantha|victoria|ava|hazel|female/i.test(`${voice.name} ${voice.voiceURI}`));
+
+      return femaleVoice ?? null;
+    };
+
+    let preferredVoice = pickFemaleVoice();
+
+    if (!preferredVoice) {
+      await new Promise<void>((resolve) => {
+        const onVoicesChanged = () => {
+          preferredVoice = pickFemaleVoice();
+          if (preferredVoice) {
+            speech.removeEventListener('voiceschanged', onVoicesChanged);
+            resolve();
+          }
+        };
+
+        speech.addEventListener('voiceschanged', onVoicesChanged, { once: true });
+        const fallbackVoices = speech.getVoices();
+        if (fallbackVoices.length > 0) {
+          preferredVoice = pickFemaleVoice();
+          if (preferredVoice) {
+            speech.removeEventListener('voiceschanged', onVoicesChanged);
+            resolve();
+          }
+        }
+      });
+    }
 
     if (preferredVoice) {
       utterance.voice = preferredVoice;

@@ -55,7 +55,10 @@ export class StaffLocatorService {
     return new Observable<DashboardEvent>((subscriber) => {
       const events = new EventSource(`${this.apiUrl}/dashboard/events`);
       events.onmessage = (event) => subscriber.next(JSON.parse(event.data) as DashboardEvent);
-      events.onerror = (error) => subscriber.error(error);
+      events.onerror = () => {
+        // EventSource reconnects automatically; do not terminate the observable
+        // on transient stream errors, otherwise the UI falsely reports disconnection.
+      };
       return () => events.close();
     });
   }
