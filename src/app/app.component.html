@@ -19,7 +19,7 @@
           Information Systems Division
         </p>
 
-        @if (!connectionMessage().includes('Failed')) {
+        @if (!connectionMessage().includes('Failed') && !updateAvailable()) {
         <div class="splash-loading" role="progressbar" aria-label="Loading"></div>
         }
 
@@ -27,6 +27,23 @@
           {{ connectionMessage() }}
         </p>
       </div>
+
+      @if (updateAvailable()) {
+      <div class="update-popover" role="dialog" aria-modal="true" aria-labelledby="update-title">
+        <div class="update-popover-icon" aria-hidden="true">&#8593;</div>
+        <p class="update-kicker">APPLICATION UPDATE</p>
+        <h1 id="update-title">New App Version Found</h1>
+        <p class="update-message">A newer version of Staff Locator is ready to download.</p>
+        <div class="update-actions">
+          <button class="update-button update-primary" type="button" (click)="downloadUpdate()">
+            Download APK
+          </button>
+          <button class="update-button update-secondary" type="button" (click)="cancelUpdate()">
+            Cancel and Exit
+          </button>
+        </div>
+      </div>
+      }
 
     </div>
   </div>

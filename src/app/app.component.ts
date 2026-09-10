@@ -3,7 +3,6 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
-import { AlertController } from '@ionic/angular';
 import { firstValueFrom, timeout } from 'rxjs';
 import { environment } from '../environments/environment';
 import { StaffLocatorService } from './core/staff-locator.service';
@@ -36,9 +35,10 @@ export class AppComponent implements OnInit {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
   private readonly staffLocator = inject(StaffLocatorService);
-  private readonly alertController = inject(AlertController);
   showSplash = signal(Capacitor.isNativePlatform());
   connectionMessage = signal('Checking connection to server');
+  updateAvailable = signal(false);
+  updateDownloadUrl = signal('');
 
   constructor() {
     addIcons({
@@ -85,8 +85,9 @@ export class AppComponent implements OnInit {
       ]);
 
       if (this.isNewerVersion(update.latestVersion, appInfo.version)) {
-        this.showSplash.set(false);
-        await this.promptForUpdate(this.resolveDownloadUrl(update.downloadUrl));
+        this.connectionMessage.set('New application version available');
+        this.updateDownloadUrl.set(this.resolveDownloadUrl(update.downloadUrl));
+        this.updateAvailable.set(true);
         return;
       }
 
@@ -115,25 +116,12 @@ export class AppComponent implements OnInit {
     return false;
   }
 
-  private async promptForUpdate(downloadUrl: string): Promise<void> {
-    const alert = await this.alertController.create({
-      header: 'New App Version Found',
-      message: 'Download APK Now?',
-      backdropDismiss: false,
-      buttons: [
-        {
-          text: 'Cancel',
-          role: 'cancel',
-          handler: () => void CapacitorApp.exitApp(),
-        },
-        {
-          text: 'Update',
-          handler: () => window.location.assign(downloadUrl),
-        },
-      ],
-    });
+  downloadUpdate(): void {
+    window.location.assign(this.updateDownloadUrl());
+  }
 
-    await alert.present();
+  cancelUpdate(): void {
+    void CapacitorApp.exitApp();
   }
 
   private resolveDownloadUrl(downloadUrl: string): string {
