@@ -16,7 +16,7 @@
           routerLink="/change-password" routerLinkActive="active" (click)="closeSidebar()"><ion-icon
             name="lock-closed-outline"></ion-icon>Change password</a><a routerLink="/system-management"
           routerLinkActive="active" (click)="closeSidebar()"><ion-icon name="settings-outline"></ion-icon>System
-          management</a></nav><button class="sidebar-logout" *ngIf="session" type="button" (click)="logout()"><ion-icon
+          management</a></nav><a class="sidebar-download web-download" href="https://stafflocator.cloud.cagayan.gov.ph/assets/ISDStaffLocator.apk"><ion-icon name="download-outline"></ion-icon>DOWNLOAD APK</a><button class="sidebar-logout" *ngIf="session" type="button" (click)="logout()"><ion-icon
           name="log-out-outline"></ion-icon>Log out</button>
     </aside><button class="sidebar-scrim" *ngIf="sidebarOpen" type="button" (click)="closeSidebar()"
       aria-label="Close navigation"></button>

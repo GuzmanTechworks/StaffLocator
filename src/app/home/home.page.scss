@@ -73,10 +73,11 @@ html.ion-palette-dark .destination-popover ion-button.doneButton::part(native) {
 .sidebar-heading { display: flex; align-items: center; justify-content: space-between; padding: 0 4px 22px; }
 .sidebar-close { width: 34px; height: 34px; font-size: 19px; }
 .sidebar nav { display: grid; gap: 5px; }
-.sidebar nav a, .sidebar-logout { display: flex; align-items: center; gap: 12px; min-height: 46px; padding: 0 12px; border: 0; border-radius: 7px; color: var(--ink); background: transparent; font: inherit; font-size: 13px; font-weight: 700; text-decoration: none; text-align: left; cursor: pointer; }
-.sidebar nav a:hover, .sidebar-logout:hover { background: var(--soft-green); color: var(--deep-green); }
-.sidebar nav ion-icon, .sidebar-logout ion-icon { color: var(--green); font-size: 19px; }
-.sidebar-logout { margin-top: auto; }
+.sidebar nav a, .sidebar-download, .sidebar-logout { display: flex; align-items: center; gap: 12px; min-height: 46px; padding: 0 12px; border: 0; border-radius: 7px; color: var(--ink); background: transparent; font: inherit; font-size: 13px; font-weight: 700; text-decoration: none; text-align: left; cursor: pointer; }
+.sidebar nav a:hover, .sidebar-download:hover, .sidebar-logout:hover { background: var(--soft-green); color: var(--deep-green); }
+.sidebar nav ion-icon, .sidebar-download ion-icon, .sidebar-logout ion-icon { color: var(--green); font-size: 19px; }
+.sidebar-download { margin-top: auto; }
+.sidebar-logout { margin-top: 4px; }
 .sidebar-scrim { position: fixed; z-index: 19; inset: 0; border: 0; background: rgba(10, 20, 17, .28); cursor: pointer; }
 .topbar, .intro, .section-heading, .brand, .connection, summary {
   display: flex;

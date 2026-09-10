@@ -62,6 +62,7 @@ export class AppComponent implements OnInit {
       'ion-palette-dark',
       localStorage.getItem('staff-locator-theme') === 'dark',
     );
+    document.documentElement.classList.toggle('native-app', Capacitor.isNativePlatform());
   }
 
   ngOnInit(): void {
@@ -85,6 +86,7 @@ export class AppComponent implements OnInit {
       ]);
 
       if (this.isNewerVersion(update.latestVersion, appInfo.version)) {
+        await new Promise(resolve => setTimeout(resolve, 2000));
         this.connectionMessage.set('New application version available');
         this.updateDownloadUrl.set(this.resolveDownloadUrl(update.downloadUrl));
         this.updateAvailable.set(true);

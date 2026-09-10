@@ -33,7 +33,7 @@ h1, h2, h3, h4, p { margin: 0; } h1 { color: var(--deep-green); font-size: 20px;
 .sidebar.sidebar-collapsed .sidebar-heading { justify-content: center; padding: 0 0 20px; }
 .sidebar.sidebar-collapsed .sidebar-brand-copy, .sidebar.sidebar-collapsed nav a span, .sidebar.sidebar-collapsed .sidebar-logout span { display: none; }
 .sidebar.sidebar-collapsed .sidebar-brand img { width: 30px; height: 30px; }
-.sidebar.sidebar-collapsed nav a, .sidebar.sidebar-collapsed .sidebar-logout { justify-content: center; min-height: 42px; padding: 0; font-size: 0; }
+.sidebar.sidebar-collapsed nav a, .sidebar.sidebar-collapsed .sidebar-download, .sidebar.sidebar-collapsed .sidebar-logout { justify-content: center; min-height: 42px; padding: 0; font-size: 0; }
 .sidebar-heading { display: flex; align-items: center; justify-content: space-between; padding: 0 4px 22px; }
 .sidebar-brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .sidebar-brand img { width: 34px; height: 34px; object-fit: contain; flex: 0 0 auto; }
@@ -42,10 +42,11 @@ h1, h2, h3, h4, p { margin: 0; } h1 { color: var(--deep-green); font-size: 20px;
 .sidebar-brand-copy strong { display: block; margin-top: 3px; color: var(--deep-green); font-size: 17px; font-weight: 500; white-space: nowrap; }
 .sidebar-close { display: none; width: 34px; height: 34px; font-size: 19px; }
 .sidebar nav { display: grid; gap: 5px; }
-.sidebar nav a, .sidebar-logout { display: flex; align-items: center; gap: 12px; min-height: 46px; padding: 0 12px; border: 0; border-radius: 7px; color: var(--ink); background: transparent; font: inherit; font-size: 13px; font-weight: 700; text-decoration: none; text-align: left; cursor: pointer; }
-.sidebar nav a:hover, .sidebar nav a.active, .sidebar-logout:hover { background: var(--soft-green); color: var(--deep-green); }
-.sidebar nav ion-icon, .sidebar-logout ion-icon { color: var(--green); font-size: 19px; }
-.sidebar-logout { margin-top: auto; }
+.sidebar nav a, .sidebar-download, .sidebar-logout { display: flex; align-items: center; gap: 12px; min-height: 46px; padding: 0 12px; border: 0; border-radius: 7px; color: var(--ink); background: transparent; font: inherit; font-size: 13px; font-weight: 700; text-decoration: none; text-align: left; cursor: pointer; }
+.sidebar nav a:hover, .sidebar nav a.active, .sidebar-download:hover, .sidebar-logout:hover { background: var(--soft-green); color: var(--deep-green); }
+.sidebar nav ion-icon, .sidebar-download ion-icon, .sidebar-logout ion-icon { color: var(--green); font-size: 19px; }
+.sidebar-download { margin-top: auto; }
+.sidebar-logout { margin-top: 4px; }
 .sidebar-scrim { display: none; position: fixed; z-index: 19; inset: 0; border: 0; background: rgba(10, 20, 17, .28); }
 .sign-in-button { display: inline-flex; align-items: center; gap: 7px; min-height: 38px; padding: 0 14px; border: 2px solid var(--green); border-radius: 5px; color: var(--green); background: transparent; font-size: 11px; font-weight: 800; letter-spacing: 1px; text-decoration: none; }
 .sign-in-button ion-icon { font-size: 16px; }
