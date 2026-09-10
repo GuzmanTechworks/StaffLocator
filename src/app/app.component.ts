@@ -83,7 +83,7 @@ export class AppComponent implements OnInit {
       ]);
 
       if (this.isNewerVersion(update.latestVersion, appInfo.version)) {
-        window.location.assign(update.downloadUrl || 'assets/ISDStaffLocator.apk');
+        window.location.assign(this.resolveDownloadUrl(update.downloadUrl));
         return;
       }
 
@@ -110,5 +110,14 @@ export class AppComponent implements OnInit {
     }
 
     return false;
+  }
+
+  private resolveDownloadUrl(downloadUrl: string): string {
+    if (/^https?:\/\//i.test(downloadUrl)) {
+      return downloadUrl;
+    }
+
+    const appUrl = environment.apiUrl.replace(/\/api\/?$/, '/');
+    return new URL(downloadUrl || 'assets/ISDStaffLocator.apk', appUrl).toString();
   }
 }
