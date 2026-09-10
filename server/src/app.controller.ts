@@ -14,6 +14,9 @@ export class AppController {
   @Get('health')
   health() { return this.appService.getHealth(); }
 
+  @Get('app-update')
+  appUpdate() { return this.appService.getAppUpdateInfo(); }
+
   @Post('auth/login')
   login(@Body() body: { username: string; password: string }) { return this.appService.login(body.username, body.password); }
 

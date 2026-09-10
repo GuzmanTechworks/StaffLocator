@@ -35,6 +35,12 @@ let AppService = class AppService {
     getHealth() {
         return { status: 'ok', service: 'staff-locator-api' };
     }
+    getAppUpdateInfo() {
+        return {
+            latestVersion: process.env.APP_VERSION ?? '1.0',
+            downloadUrl: process.env.APP_DOWNLOAD_URL ?? 'assets/ISDStaffLocator.apk',
+        };
+    }
     async getDashboard() {
         const [locations, users, visits, history] = await Promise.all([
             this.prisma.location.findMany({ where: { active: true }, orderBy: { name: 'asc' } }),

@@ -33,6 +33,10 @@ export declare class AppService {
         status: string;
         service: string;
     };
+    getAppUpdateInfo(): {
+        latestVersion: string;
+        downloadUrl: string;
+    };
     getDashboard(): Promise<{
         locations: {
             id: number;

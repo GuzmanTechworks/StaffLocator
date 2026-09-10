@@ -1,3 +1,24 @@
 <ion-app>
+  <div class="app-splash" *ngIf="showSplash && isMobileApp">
+    <div class="app-splash-content">
+      <img class="splash-logo" src="assets/logo/cagayan.png" alt="Cagayan Provincial Government Logo">
+      <div class="splash-text-block">
+        <p class="splash-title splash-subtitle">PROVINCIAL GOVERNMENT OF CAGAYAN</p>
+        <p class="splash-title splash-division">INFORMATION SYSTEMS DIVISION</p>
+        <p class="splash-title splash-appname">STAFF LOCATOR</p>
+      </div>
+
+      <div class="splash-progress" *ngIf="!serverFailed">
+        <div class="splash-progress-bar" [style.width.%]="progress"></div>
+      </div>
+
+      <p class="splash-status" *ngIf="checkingConnection">Checking connection to server...</p>
+      <p class="splash-status" *ngIf="loadingData">Loading necessary data...</p>
+      <p class="splash-status" *ngIf="checkingUpdate && isMobileApp">Checking for app new update...</p>
+      <p class="splash-status" *ngIf="updatingApp">New App update found. Updating the App...</p>
+      <p class="splash-error" *ngIf="serverFailed">Server Connection Failed. Try again later</p>
+    </div>
+  </div>
+
   <ion-router-outlet></ion-router-outlet>
 </ion-app>

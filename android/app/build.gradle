@@ -48,6 +48,28 @@ android.applicationVariants.all { variant ->
     }
 }
 
+tasks.register("copyReleaseApkToAssets") {
+    doLast {
+        def sourceApk = file("$buildDir/outputs/apk/release/ISDStaffLocator.apk")
+        def targetDir = file("${rootProject.projectDir}/../src/assets")
+
+        if (!sourceApk.exists()) {
+            throw new GradleException("Release APK not found at ${sourceApk}")
+        }
+
+        copy {
+            from(sourceApk)
+            into(targetDir)
+        }
+    }
+}
+
+tasks.whenTaskAdded { task ->
+    if (task.name == "assembleRelease") {
+        task.finalizedBy("copyReleaseApkToAssets")
+    }
+}
+
 repositories {
     flatDir{
         dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'

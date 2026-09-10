@@ -12,6 +12,10 @@ export declare class AppController {
         status: string;
         service: string;
     };
+    appUpdate(): {
+        latestVersion: string;
+        downloadUrl: string;
+    };
     login(body: {
         username: string;
         password: string;

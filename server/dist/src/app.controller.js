@@ -24,6 +24,7 @@ let AppController = class AppController {
     }
     root() { return this.appService.getHealth(); }
     health() { return this.appService.getHealth(); }
+    appUpdate() { return this.appService.getAppUpdateInfo(); }
     login(body) { return this.appService.login(body.username, body.password); }
     dashboard() { return this.appService.getDashboard(); }
     changePassword(request, body) {
@@ -57,6 +58,12 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], AppController.prototype, "health", null);
+__decorate([
+    (0, common_1.Get)('app-update'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], AppController.prototype, "appUpdate", null);
 __decorate([
     (0, common_1.Post)('auth/login'),
     __param(0, (0, common_1.Body)()),

@@ -1,85 +1,242 @@
 <ion-content [fullscreen]="true">
   <main class="shell">
     <aside class="sidebar" [class.sidebar-open]="sidebarOpen">
-      <div class="sidebar-heading"><span class="eyebrow">STAFF LOCATOR</span><button type="button" class="sidebar-close" (click)="closeSidebar()" aria-label="Close navigation"><ion-icon name="close-outline"></ion-icon></button></div>
+      <div class="sidebar-heading"><span class="eyebrow">STAFF LOCATOR</span><button type="button" class="sidebar-close"
+          (click)="closeSidebar()" aria-label="Close navigation"><ion-icon name="close-outline"></ion-icon></button>
+      </div>
       <nav aria-label="Main navigation">
-        <a href="#dashboard" (click)="closeSidebar()"><ion-icon name="grid-outline"></ion-icon><span>Dashboard</span></a>
-        <a href="#movement-history" (click)="closeSidebar()"><ion-icon name="time-outline"></ion-icon><span>Movement history</span></a>
-        <a href="#change-password" (click)="closeSidebar()"><ion-icon name="lock-closed-outline"></ion-icon><span>Change password</span></a>
-        <a href="#settings-panel" (click)="closeSidebar()"><ion-icon name="settings-outline"></ion-icon><span>Settings</span></a>
+        <a href="#dashboard" (click)="closeSidebar()"><ion-icon
+            name="grid-outline"></ion-icon><span>Dashboard</span></a>
+        <a href="#movement-history" (click)="closeSidebar()"><ion-icon name="time-outline"></ion-icon><span>Movement
+            history</span></a>
+        <a href="#change-password" (click)="closeSidebar()"><ion-icon name="lock-closed-outline"></ion-icon><span>Change
+            password</span></a>
+        <a href="#settings-panel" (click)="closeSidebar()"><ion-icon
+            name="settings-outline"></ion-icon><span>Settings</span></a>
       </nav>
-      <button class="sidebar-logout" *ngIf="session" type="button" (click)="logout()"><ion-icon name="log-out-outline"></ion-icon><span>Log out</span></button>
+      <button class="sidebar-logout" *ngIf="session" type="button" (click)="logout()"><ion-icon
+          name="log-out-outline"></ion-icon><span>Log out</span></button>
     </aside>
-    <button class="sidebar-scrim" *ngIf="sidebarOpen" type="button" (click)="closeSidebar()" aria-label="Close navigation"></button>
+    <button class="sidebar-scrim" *ngIf="sidebarOpen" type="button" (click)="closeSidebar()"
+      aria-label="Close navigation"></button>
     <header class="topbar">
-      <button class="menu-toggle" type="button" (click)="toggleSidebar()" [attr.aria-label]="sidebarOpen ? 'Close navigation' : 'Open navigation'"><ion-icon name="menu-outline"></ion-icon></button>
+      <button class="menu-toggle" type="button" (click)="toggleSidebar()"
+        [attr.aria-label]="sidebarOpen ? 'Close navigation' : 'Open navigation'"><ion-icon
+          name="menu-outline"></ion-icon></button>
       <div class="brand">
         <img class="brand-mark" src="assets/logo/cagayan.png" alt="PGC Logo">
-        <div><p class="eyebrow">PGC Information Systems Division</p>
-              <h1>Staff Locator</h1>
+        <div>
+          <p class="eyebrow">PGC Information Systems Division</p>
+          <h1>Staff Locator</h1>
         </div>
       </div>
-      <div class="connection"><button class="theme-toggle" type="button" (click)="toggleTheme()" [attr.aria-label]="isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'"><ion-icon [name]="isDarkMode ? 'sunny-outline' : 'moon-outline'"></ion-icon></button><div class="live-status"><span><span class="pulse"></span> Live dashboard</span><span class="clock">{{ currentTime }}</span></div></div>
+      <div class="connection"><button class="theme-toggle" type="button" (click)="toggleTheme()"
+          [attr.aria-label]="isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'"><ion-icon
+            [name]="isDarkMode ? 'sunny-outline' : 'moon-outline'"></ion-icon></button>
+        <div class="live-status"><span><span class="pulse"></span> Live dashboard</span><span class="clock">{{
+            currentTime }}</span></div>
+      </div>
     </header>
     <section class="intro" id="dashboard">
       <div *ngIf="session; else publicIntro" class="logged-in-intro">
         <p class="eyebrow">LOGGED IN USER</p>
         <h2>{{ currentUsername }}</h2>
-        <div class="profile-meta"><span>{{ currentRole }}</span><span class="divider">|</span><ion-button fill="clear" size="small" (click)="logout()">Sign out</ion-button></div>
+        <div class="profile-meta"><span>{{ currentRole }}</span><span class="divider">|</span><ion-button fill="clear"
+            size="small" (click)="logout()">Sign out</ion-button></div>
       </div>
-      <ng-template #publicIntro><div>
-        <p class="eyebrow">TODAY'S MOVEMENT</p>
-        <h2>Where is everyone?</h2>
-        <p class="subtle">Keep the office informed when people step out.</p>
-      </div></ng-template>
+      <ng-template #publicIntro>
+        <div>
+          <p class="eyebrow">TODAY'S MOVEMENT</p>
+          <h2>Where is everyone?</h2>
+          <p class="subtle">Keep the office informed when people step out.</p>
+        </div>
+      </ng-template>
       <div class="stat"><strong>{{ dashboard.activeVisits.length }}</strong>
         <span>currently out</span>
       </div>
     </section>
-    <section class="account-tools" id="change-password" *ngIf="session"><div><p class="eyebrow">ACCOUNT SECURITY</p><h3>Change your password</h3></div><form (ngSubmit)="changePassword()"><ion-input type="password" label="Current password" label-placement="stacked" fill="outline" [(ngModel)]="currentPassword" name="currentPassword" required></ion-input><ion-input type="password" label="New password" label-placement="stacked" fill="outline" [(ngModel)]="changePasswordValue" name="newPassword" minlength="6" required></ion-input><ion-button type="submit" [disabled]="!currentPassword || changePasswordValue.length < 6">Change password</ion-button></form></section>
-    <section class="settings-panel" id="settings-panel" *ngIf="session"><div><p class="eyebrow">PREFERENCES</p><h3>Settings</h3><p class="subtle">Choose the dashboard appearance.</p></div><button class="settings-theme" type="button" (click)="toggleTheme()"><ion-icon [name]="isDarkMode ? 'sunny-outline' : 'moon-outline'"></ion-icon>{{ isDarkMode ? 'Light mode' : 'Dark mode' }}</button></section>
+    <section class="account-tools" id="change-password" *ngIf="session">
+      <div>
+        <p class="eyebrow">ACCOUNT SECURITY</p>
+        <h3>Change your password</h3>
+      </div>
+      <form (ngSubmit)="changePassword()"><ion-input type="password" label="Current password" label-placement="stacked"
+          fill="outline" [(ngModel)]="currentPassword" name="currentPassword" required></ion-input><ion-input
+          type="password" label="New password" label-placement="stacked" fill="outline"
+          [(ngModel)]="changePasswordValue" name="newPassword" minlength="6" required></ion-input><ion-button
+          type="submit" [disabled]="!currentPassword || changePasswordValue.length < 6">Change password</ion-button>
+      </form>
+    </section>
+    <section class="settings-panel" id="settings-panel" *ngIf="session">
+      <div>
+        <p class="eyebrow">PREFERENCES</p>
+        <h3>Settings</h3>
+        <p class="subtle">Choose the dashboard appearance.</p>
+      </div><button class="settings-theme" type="button" (click)="toggleTheme()"><ion-icon
+          [name]="isDarkMode ? 'sunny-outline' : 'moon-outline'"></ion-icon>{{ isDarkMode ? 'Light mode' : 'Dark mode'
+        }}</button>
+    </section>
     <p class="notice success" *ngIf="message"><ion-icon name="checkmark-circle-outline"></ion-icon>{{ message }}</p>
     <p class="notice danger" *ngIf="error"><ion-icon name="alert-circle-outline"></ion-icon>{{ error }}</p>
     <section class="action-panel" id="quick-action" *ngIf="session && !session.user.isAdmin">
-      <div class="section-heading"><div>
-        <p class="eyebrow">QUICK ACTION</p>
-        <h3>Record a movement</h3>
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">QUICK ACTION</p>
+          <h3>Record a movement</h3>
+        </div>
+        <span class="step">01</span>
       </div>
-      <span class="step">01</span>
-    </div>
-    <div class="action-grid">
-      <ion-item lines="none" class="destination-field"><ion-label position="stacked">Going to</ion-label><button class="destination-trigger" type="button" (click)="openDestinationPicker()"><span>{{ destination || 'Select Destination' }}</span><ion-icon name="chevron-down-outline"></ion-icon></button></ion-item>
-      <ion-item lines="none"><ion-label position="stacked">With whom</ion-label><ion-select [multiple]="true" [(ngModel)]="selectedCompanionIds" name="companions" placeholder="Select companions"><ion-select-option *ngFor="let user of availableCompanions" [value]="user.id">{{ user.firstName }} {{ user.lastName }}</ion-select-option></ion-select></ion-item>
-      <ion-item lines="none"><ion-label position="stacked">Purpose</ion-label><ion-input [(ngModel)]="purpose" name="purpose" placeholder="Reason for leaving"></ion-input></ion-item>
-      <ion-button class="timeout-button" (click)="timeOut()" [disabled]="!destination.trim() || !purpose.trim()"><ion-icon name="log-out-outline" slot="start"></ion-icon>Time out</ion-button></div></section>
-    <ion-popover [isOpen]="destinationPickerOpen" (didDismiss)="closeDestinationPicker()"><ng-template><div class="destination-popover"><div class="popover-heading"><strong>Select Destination</strong><button type="button" (click)="closeDestinationPicker()" aria-label="Close destination picker"><ion-icon name="close-outline"></ion-icon></button></div><ion-searchbar [value]="locationSearch" placeholder="Search offices" (ionInput)="locationSearch = $event.detail.value ?? ''"></ion-searchbar><div class="destination-options"><ion-checkbox *ngFor="let location of sortedLocations" [checked]="selectedLocationIds.includes(location.id)" (ionChange)="toggleLocation(location.id)">{{ location.name }}</ion-checkbox><ion-checkbox [checked]="isManualDestination" (ionChange)="toggleLocation('manual')">Type manually</ion-checkbox></div><ion-input #manualDestinationInput *ngIf="isManualDestination" [value]="manualDestination" (ionInput)="manualDestination = $event.detail.value ?? ''" name="popoverDestination" placeholder="Type destination"></ion-input>
-      <ion-button class="done-button" expand="block" (click)="closeDestinationPicker()">Done</ion-button>
-    </div></ng-template></ion-popover>
+      <div class="action-grid">
+        <ion-item lines="none" class="destination-field"><ion-label position="stacked">Going to</ion-label><button
+            class="destination-trigger" type="button" (click)="openDestinationPicker()"><span>{{ destination || 'Select
+              Destination' }}</span><ion-icon name="chevron-down-outline"></ion-icon></button></ion-item>
+        <ion-item lines="none"><ion-label position="stacked">With whom</ion-label><ion-select [multiple]="true"
+            [(ngModel)]="selectedCompanionIds" name="companions" placeholder="Select companions"><ion-select-option
+              *ngFor="let user of availableCompanions" [value]="user.id">{{ user.firstName }} {{ user.lastName
+              }}</ion-select-option></ion-select></ion-item>
+        <ion-item lines="none"><ion-label position="stacked">Purpose</ion-label><ion-input [(ngModel)]="purpose"
+            name="purpose" placeholder="Reason for leaving"></ion-input></ion-item>
+        <ion-button class="timeout-button" (click)="timeOut()"
+          [disabled]="!destination.trim() || !purpose.trim()"><ion-icon name="log-out-outline"
+            slot="start"></ion-icon>Time out</ion-button>
+      </div>
+    </section>
+    <ion-popover [isOpen]="destinationPickerOpen" (didDismiss)="closeDestinationPicker()"><ng-template>
+        <div class="destination-popover">
+          <div class="popover-heading"><strong>Select Destination</strong><button type="button"
+              (click)="closeDestinationPicker()" aria-label="Close destination picker"><ion-icon
+                name="close-outline"></ion-icon></button></div><ion-searchbar [value]="locationSearch"
+            placeholder="Search offices" (ionInput)="locationSearch = $event.detail.value ?? ''"></ion-searchbar>
+          <div class="destination-options"><ion-checkbox *ngFor="let location of sortedLocations"
+              [checked]="selectedLocationIds.includes(location.id)" (ionChange)="toggleLocation(location.id)">{{
+              location.name }}</ion-checkbox><ion-checkbox [checked]="isManualDestination"
+              (ionChange)="toggleLocation('manual')">Type manually</ion-checkbox></div><ion-input
+            #manualDestinationInput *ngIf="isManualDestination" [value]="manualDestination"
+            (ionInput)="manualDestination = $event.detail.value ?? ''" name="popoverDestination"
+            placeholder="Type destination"></ion-input>
+          <ion-button class="done-button" expand="block" (click)="closeDestinationPicker()">Done</ion-button>
+        </div>
+      </ng-template></ion-popover>
     <section class="roster-section" id="live-updates">
-      <div class="section-heading"><div>
-        <p class="eyebrow">LIVE UPDATES</p>
-        <h3>Currently out of office</h3>
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">LIVE UPDATES</p>
+          <h3>Currently out of office</h3>
+        </div>
+        <span class="refresh-note">Updates every 10 seconds</span>
       </div>
-      <span class="refresh-note">Updates every 10 seconds</span></div>
       <div class="return-tools" *ngIf="session && returnGroupVisits.length > 0">
         <div class="return-select-wrap">
           <ion-label position="stacked">Who returned?</ion-label>
-          <ion-select [multiple]="true" [(ngModel)]="selectedReturnVisitIds" name="returnVisits" placeholder="Select people who returned">
-            <ion-select-option *ngFor="let visit of returnGroupVisits" [value]="visit.id">{{ visit.user.firstName }} {{ visit.user.lastName }}</ion-select-option>
+          <ion-select [multiple]="true" [(ngModel)]="selectedReturnVisitIds" name="returnVisits"
+            placeholder="Select people who returned">
+            <ion-select-option *ngFor="let visit of returnGroupVisits" [value]="visit.id">{{ visit.user.firstName }} {{
+              visit.user.lastName }}</ion-select-option>
           </ion-select>
         </div>
         <ion-input [(ngModel)]="remarks" name="remarks" placeholder="Remarks"></ion-input>
         <div class="return-actions">
-          <ion-button *ngIf="returnGroupVisits.length > 1" fill="outline" class="select-all-button" type="button" (click)="selectAllReturnVisits()">Select all</ion-button>
-          <ion-button (click)="timeInSelected()" [disabled]="selectedReturnVisitIds.length === 0">Time in selected</ion-button>
+          <ion-button *ngIf="returnGroupVisits.length > 1" fill="outline" class="select-all-button" type="button"
+            (click)="selectAllReturnVisits()">Select all</ion-button>
+          <ion-button (click)="timeInSelected()" [disabled]="selectedReturnVisitIds.length === 0">Time in
+            selected</ion-button>
         </div>
       </div>
-      <div class="empty-state" *ngIf="dashboard.activeVisits.length === 0"><ion-icon name="checkmark-circle-outline"></ion-icon><p>Everyone is in the office.</p></div><div class="table-wrap" *ngIf="dashboard.activeVisits.length > 0"><table><thead><tr><th>Date</th><th>Staff member</th><th>Destination</th><th>Purpose</th><th>Time out</th></tr></thead><tbody><tr *ngFor="let visit of dashboard.activeVisits"><td>{{ formatDate(visit.timedOutAt) }}</td><td><strong>{{ visit.user.firstName }} {{ visit.user.lastName }}</strong></td><td><span class="location-dot"></span>{{ visit.destination }}</td><td>{{ visit.purpose }}</td><td>{{ formatTime(visit.timedOutAt) }}</td></tr></tbody></table></div></section>
-    <section class="history-section" id="movement-history">
-      <div class="section-heading"><div><p class="eyebrow">MOVEMENT HISTORY</p><h3>Completed movements</h3></div><span class="refresh-note">Last 100 records</span></div>
-      <div class="empty-state" *ngIf="dashboard.history.length === 0"><ion-icon name="time-outline"></ion-icon><p>No completed movements yet.</p></div>
-      <div class="table-wrap" *ngIf="dashboard.history.length > 0"><table><thead><tr><th>Date</th><th>Staff member</th><th>Destination</th><th>Purpose</th><th>Time out</th><th>Time in</th><th>Remarks</th></tr></thead><tbody><tr *ngFor="let visit of dashboard.history"><td>{{ formatDate(visit.timedOutAt) }}</td><td><strong>{{ visit.user.firstName }} {{ visit.user.lastName }}</strong></td><td><span class="location-dot"></span>{{ visit.destination }}</td><td>{{ visit.purpose }}</td><td>{{ formatTime(visit.timedOutAt) }}</td><td>{{ formatTime(visit.timedInAt) }}</td><td>{{ visit.remarks || '-' }}</td></tr></tbody></table></div>
+      <div class="empty-state" *ngIf="dashboard.activeVisits.length === 0"><ion-icon
+          name="checkmark-circle-outline"></ion-icon>
+        <p>Everyone is in the office.</p>
+      </div>
+      <div class="table-wrap" *ngIf="dashboard.activeVisits.length > 0">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Staff member</th>
+              <th>Destination</th>
+              <th>Purpose</th>
+              <th>Time out</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let visit of dashboard.activeVisits">
+              <td>{{ formatDate(visit.timedOutAt) }}</td>
+              <td><strong>{{ visit.user.firstName }} {{ visit.user.lastName }}</strong></td>
+              <td><span class="location-dot"></span>{{ visit.destination }}</td>
+              <td>{{ visit.purpose }}</td>
+              <td>{{ formatTime(visit.timedOutAt) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </section>
-      <details class="admin-tools" id="settings" *ngIf="session?.user?.isAdmin"><summary><span><ion-icon name="settings-outline"></ion-icon> Settings</span><ion-icon name="chevron-down-outline"></ion-icon></summary><div class="admin-grid"><form (ngSubmit)="createUser()"><h4>Create user</h4><ion-input label="First name" label-placement="stacked" fill="outline" [(ngModel)]="newFirstName" name="firstName" required></ion-input><ion-input label="Last name" label-placement="stacked" fill="outline" [(ngModel)]="newLastName" name="lastName" required></ion-input><ion-input label="Nickname" label-placement="stacked" fill="outline" [(ngModel)]="newNickname" name="nickname" required></ion-input><ion-input label="Username" label-placement="stacked" fill="outline" [(ngModel)]="newUsername" name="username" required></ion-input><ion-input label="Password" label-placement="stacked" fill="outline" type="password" [(ngModel)]="newPassword" name="password" required></ion-input><ion-button type="submit" [disabled]="!newFirstName || !newLastName || !newNickname || !newUsername || !newPassword">Add user</ion-button></form><form (ngSubmit)="createLocation()"><h4>Add destination</h4><ion-input label="Office or destination" label-placement="stacked" fill="outline" [(ngModel)]="newLocation" name="location" required></ion-input><ion-button type="submit" [disabled]="!newLocation">Add destination</ion-button></form><form (ngSubmit)="resetPassword()"><h4>Reset user password</h4><ion-select label="User" label-placement="stacked" fill="outline" [(ngModel)]="resetUserId" name="resetUserId" placeholder="Select user"><ion-select-option *ngFor="let user of dashboard.users" [value]="user.id">{{ user.firstName }} {{ user.lastName }}</ion-select-option></ion-select><ion-input label="New password" label-placement="stacked" fill="outline" type="password" [(ngModel)]="resetPasswordValue" name="resetPasswordValue" minlength="6" required></ion-input><ion-button type="submit" [disabled]="!resetUserId || resetPasswordValue.length < 6">Reset password</ion-button></form></div></details>
+    <section class="history-section" id="movement-history">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">MOVEMENT HISTORY</p>
+          <h3>Completed movements</h3>
+        </div><span class="refresh-note">Last 100 records</span>
+      </div>
+      <div class="empty-state" *ngIf="dashboard.history.length === 0"><ion-icon name="time-outline"></ion-icon>
+        <p>No completed movements yet.</p>
+      </div>
+      <div class="table-wrap" *ngIf="dashboard.history.length > 0">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Staff member</th>
+              <th>Destination</th>
+              <th>Purpose</th>
+              <th>Time out</th>
+              <th>Time in</th>
+              <th>Remarks</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let visit of dashboard.history">
+              <td>{{ formatDate(visit.timedOutAt) }}</td>
+              <td><strong>{{ visit.user.firstName }} {{ visit.user.lastName }}</strong></td>
+              <td><span class="location-dot"></span>{{ visit.destination }}</td>
+              <td>{{ visit.purpose }}</td>
+              <td>{{ formatTime(visit.timedOutAt) }}</td>
+              <td>{{ formatTime(visit.timedInAt) }}</td>
+              <td>{{ visit.remarks || '-' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <details class="admin-tools" id="settings" *ngIf="session?.user?.isAdmin">
+      <summary><span><ion-icon name="settings-outline"></ion-icon> Settings</span><ion-icon
+          name="chevron-down-outline"></ion-icon></summary>
+      <div class="admin-grid">
+        <form (ngSubmit)="createUser()">
+          <h4>Create user</h4><ion-input label="First name" label-placement="stacked" fill="outline"
+            [(ngModel)]="newFirstName" name="firstName" required></ion-input><ion-input label="Last name"
+            label-placement="stacked" fill="outline" [(ngModel)]="newLastName" name="lastName"
+            required></ion-input><ion-input label="Nickname" label-placement="stacked" fill="outline"
+            [(ngModel)]="newNickname" name="nickname" required></ion-input><ion-input label="Username"
+            label-placement="stacked" fill="outline" [(ngModel)]="newUsername" name="username"
+            required></ion-input><ion-input label="Password" label-placement="stacked" fill="outline" type="password"
+            [(ngModel)]="newPassword" name="password" required></ion-input><ion-button type="submit"
+            [disabled]="!newFirstName || !newLastName || !newNickname || !newUsername || !newPassword">Add
+            user</ion-button>
+        </form>
+        <form (ngSubmit)="createLocation()">
+          <h4>Add destination</h4><ion-input label="Office or destination" label-placement="stacked" fill="outline"
+            [(ngModel)]="newLocation" name="location" required></ion-input><ion-button type="submit"
+            [disabled]="!newLocation">Add destination</ion-button>
+        </form>
+        <form (ngSubmit)="resetPassword()">
+          <h4>Reset user password</h4><ion-select label="User" label-placement="stacked" fill="outline"
+            [(ngModel)]="resetUserId" name="resetUserId" placeholder="Select user"><ion-select-option
+              *ngFor="let user of dashboard.users" [value]="user.id">{{ user.firstName }} {{ user.lastName
+              }}</ion-select-option></ion-select><ion-input label="New password" label-placement="stacked"
+            fill="outline" type="password" [(ngModel)]="resetPasswordValue" name="resetPasswordValue" minlength="6"
+            required></ion-input><ion-button type="submit"
+            [disabled]="!resetUserId || resetPasswordValue.length < 6">Reset password</ion-button>
+        </form>
+      </div>
+    </details>
   </main>
 </ion-content>
