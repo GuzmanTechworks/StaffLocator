@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
+import { Capacitor } from '@capacitor/core';
 import { addIcons } from 'ionicons';
 import {
   alertCircleOutline,
@@ -23,7 +24,10 @@ import {
   styleUrls: ['app.component.scss'],
   standalone: false,
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
+
+  showSplash = signal(Capacitor.isNativePlatform());
+
   constructor() {
     addIcons({
       'alert-circle-outline': alertCircleOutline,
@@ -48,4 +52,14 @@ export class AppComponent {
     );
   }
 
+  ngOnInit(): void {
+
+    if (!this.showSplash()) {
+      return;
+    }
+
+    setTimeout(() => {
+      this.showSplash.set(false);
+    }, 1000);
+  }
 }

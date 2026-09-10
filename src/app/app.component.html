@@ -1,3 +1,31 @@
 <ion-app>
+
+  <div class="app-splash" *ngIf="showSplash()">
+    <div class="app-splash-content">
+
+      <img
+        class="splash-logo"
+        src="assets/logo/cagayan.png"
+        alt="Cagayan Provincial Government Logo"
+      >
+
+      <div class="splash-text-block">
+        <p class="splash-title splash-black">
+          Provincial Government of Cagayan
+        </p>
+
+        <p class="splash-title splash-black">
+          Information Systems Division
+        </p>
+
+        <p class="splash-title splash-green">
+          Staff Locator
+        </p>
+      </div>
+
+    </div>
+  </div>
+
   <ion-router-outlet></ion-router-outlet>
+
 </ion-app>
