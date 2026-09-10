@@ -34,7 +34,7 @@ log.txt
 server/.env
 npm-debug.log
 yarn-error.log
-
+server/dist/
 # IDEs and editors
 .idea/
 .project

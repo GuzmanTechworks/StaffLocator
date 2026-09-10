@@ -1,6 +1,7 @@
 <ion-app>
 
-  <div class="app-splash" *ngIf="showSplash()">
+  @if (showSplash()) {
+  <div class="app-splash">
     <div class="app-splash-content">
 
       <img
@@ -18,13 +19,18 @@
           Information Systems Division
         </p>
 
-        <p class="splash-title splash-green">
-          Staff Locator
+        @if (!connectionMessage().includes('Failed')) {
+        <div class="splash-loading" role="progressbar" aria-label="Loading"></div>
+        }
+
+        <p class="splash-status" [class.splash-error]="connectionMessage().includes('Failed')">
+          {{ connectionMessage() }}
         </p>
       </div>
 
     </div>
   </div>
+  }
 
   <ion-router-outlet></ion-router-outlet>
 
