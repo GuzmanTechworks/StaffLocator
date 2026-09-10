@@ -5,8 +5,7 @@
 export const environment = {
   production: false,
   apiUrl: 'http://127.0.0.1:3000',
-  appVersion: '1.0',
-    // apiUrl: 'https://stafflocator.cloud.cagayan.gov.ph/api',
+  
 
 };
 

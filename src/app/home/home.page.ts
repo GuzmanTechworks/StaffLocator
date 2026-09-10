@@ -1,5 +1,6 @@
 import { Directive, HostListener, ViewChild } from '@angular/core';
 import { ChangeDetectorRef } from '@angular/core';
+import { Router } from '@angular/router';
 import { IonInput } from '@ionic/angular';
 import { interval, Subscription } from 'rxjs';
 import { ActiveVisit, DashboardData, DashboardEvent, StaffLocatorService } from '../core/staff-locator.service';
@@ -42,7 +43,11 @@ export class HomePage {
   private announcementQueue: Promise<void> = Promise.resolve();
   private dashboardEventsSubscription?: Subscription;
 
-  constructor(private readonly staffLocator: StaffLocatorService, private readonly changeDetector: ChangeDetectorRef) {
+  constructor(
+    private readonly staffLocator: StaffLocatorService,
+    private readonly changeDetector: ChangeDetectorRef,
+    private readonly router: Router,
+  ) {
     this.applyTheme();
     interval(1000).subscribe(() => {
       this.currentTime = this.formatCurrentTime();
@@ -174,7 +179,12 @@ export class HomePage {
 
   closeSidebar() { this.sidebarOpen = false; }
 
-  logout() { this.closeSidebar(); this.staffLocator.session = null; this.dashboard = { users: [], locations: [], activeVisits: [], history: [] }; }
+  logout() {
+    this.closeSidebar();
+    this.staffLocator.session = null;
+    this.dashboard = { users: [], locations: [], activeVisits: [], history: [] };
+    void this.router.navigateByUrl('/sign-in');
+  }
 
   ionViewDidEnter() {
     this.loadDashboard();
