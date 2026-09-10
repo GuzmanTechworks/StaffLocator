@@ -74,6 +74,24 @@ export class HomePage {
     return ownVisit?.groupId ? this.dashboard.activeVisits.filter((visit) => visit.groupId === ownVisit.groupId) : [];
   }
 
+  get currentDayHistory() {
+    if (!this.session) return [];
+
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+
+    return this.dashboard.history
+      .filter((visit) => {
+        if (!visit.timedOutAt) return false;
+        const timedOutAt = new Date(visit.timedOutAt);
+        if (timedOutAt < start || timedOutAt >= end) return false;
+
+        return this.session?.user.isAdmin || visit.user.id === this.session?.user.id;
+      })
+      .sort((first, second) => new Date(second.timedOutAt).getTime() - new Date(first.timedOutAt).getTime());
+  }
+
   get destination() {
     const selectedNames = this.dashboard.locations
       .filter((location) => this.selectedLocationIds.includes(location.id))

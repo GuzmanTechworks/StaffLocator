@@ -48,7 +48,6 @@ let AppService = class AppService {
                 where: { timedInAt: { not: null } },
                 include: { user: { select: { id: true, firstName: true, lastName: true, nickname: true, username: true } }, location: true },
                 orderBy: { timedInAt: 'desc' },
-                take: 100,
             }),
         ]);
         return { locations, users, activeVisits: visits, history };
