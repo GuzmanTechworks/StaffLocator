@@ -1,4 +1,4 @@
-package com.stafflocator.ionic;
+package io.ionic.starter;
 
 import com.getcapacitor.BridgeActivity;
 

@@ -12,6 +12,9 @@
         <ion-input label="Password" label-placement="stacked" fill="outline" type="password" [(ngModel)]="password" name="password" required></ion-input>
         <ion-button expand="block" type="submit" [disabled]="isSubmitting || !username || !password">{{ isSubmitting ? 'Signing in...' : 'Sign in' }}</ion-button>
       </form>
+      <ion-button *ngIf="canUseFingerprint" expand="block" fill="outline" type="button" [disabled]="biometricBusy" (click)="useFingerprintSignIn()">
+        {{ biometricBusy ? 'Checking fingerprint...' : 'Use fingerprint' }}
+      </ion-button>
     </section>
   </main>
 </ion-content>

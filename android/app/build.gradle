@@ -1,46 +1,50 @@
 apply plugin: 'com.android.application'
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file("keystore.properties")
 
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
 android {
-    namespace = "com.stafflocator.ionic"
+    namespace = "io.ionic.starter"
     compileSdk = rootProject.ext.compileSdkVersion
-
     defaultConfig {
-        applicationId "com.stafflocator.ionic"
+        applicationId "io.ionic.starter"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
-            // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
-            // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
+             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
+             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
 
     signingConfigs {
         release {
-            storeFile rootProject.file('stafflocator-release.keystore')
-            storePassword '0ffice.IT'
-            keyAlias 'stafflocator'
-            keyPassword '0ffice.IT'
+            if (keystorePropertiesFile.exists()) {
+                storeFile file("$projectDir/${keystoreProperties['storeFile']}")
+                storePassword keystoreProperties['storePassword']
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+            }
         }
     }
 
     buildTypes {
         release {
+            signingConfig signingConfigs.release
+
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.release
         }
     }
-
-    applicationVariants.all { variant ->
-        if (variant.buildType.name == 'release') {
-            variant.outputs.all { output ->
-                output.outputFileName = 'ISD Staff Locator.apk'
-            }
-        }
+}
+android.applicationVariants.all { variant ->
+    variant.outputs.all { output ->
+        output.outputFileName = "ISDStaffLocator.apk"
     }
 }
 

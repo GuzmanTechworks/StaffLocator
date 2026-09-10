@@ -46,6 +46,15 @@ export class StaffLocatorService {
     else localStorage.removeItem('staff-locator-session');
   }
 
+  get biometricEnabled(): boolean {
+    return localStorage.getItem('staff-locator-biometric-enabled') === 'true';
+  }
+
+  set biometricEnabled(value: boolean) {
+    if (value) localStorage.setItem('staff-locator-biometric-enabled', 'true');
+    else localStorage.removeItem('staff-locator-biometric-enabled');
+  }
+
   expireSession() {
     this.session = null;
   }
