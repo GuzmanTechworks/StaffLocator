@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { App as CapacitorApp } from '@capacitor/app';
+import { Browser } from '@capacitor/browser';
 import { Capacitor } from '@capacitor/core';
 import { firstValueFrom, timeout } from 'rxjs';
 import { environment } from '../environments/environment';
@@ -119,8 +120,13 @@ export class AppComponent implements OnInit {
     return false;
   }
 
-  downloadUpdate(): void {
-    window.location.assign(this.updateDownloadUrl());
+  async downloadUpdate(): Promise<void> {
+    const url = this.updateDownloadUrl();
+    if (Capacitor.isNativePlatform()) {
+      await Browser.open({ url });
+    } else {
+      window.location.assign(url);
+    }
   }
 
   cancelUpdate(): void {
