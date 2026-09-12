@@ -19,8 +19,20 @@
           Information Systems Division
         </p>
 
-        @if (!connectionMessage().includes('Failed') && !updateAvailable()) {
+        @if (!connectionMessage().includes('Failed') && !updateAvailable() && updatePhase() === 'checking') {
         <div class="splash-loading" role="progressbar" aria-label="Loading"></div>
+        }
+
+        @if (updatePhase() === 'download') {
+        <div class="update-progress" aria-label="Download progress">
+          <div class="update-progress-bar" [style.width.%]="downloadProgress()"></div>
+        </div>
+        }
+
+        @if (updatePhase() === 'install') {
+        <div class="update-progress" aria-label="Install progress">
+          <div class="update-progress-bar" [style.width.%]="installProgress()"></div>
+        </div>
         }
 
         <p class="splash-status" [class.splash-error]="connectionMessage().includes('Failed')">
