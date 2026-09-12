@@ -39,6 +39,8 @@ export class HomePage {
   private notificationAudioUnlocked = false;
   private notificationAudioContext?: AudioContext;
   private readonly announcementChimePath = 'assets/audio/announcement-chime.mp3';
+  private announcementChimeBuffer?: AudioBuffer;
+  private announcementChimeBufferPromise?: Promise<void>;
   private readonly announcedGroupEvents = new Set<string>();
   private announcementQueue: Promise<void> = Promise.resolve();
   private dashboardEventsSubscription?: Subscription;
@@ -64,6 +66,10 @@ export class HomePage {
 
   get currentRole() {
     return this.session?.user.isAdmin ? 'ADMIN' : 'STAFF';
+  }
+
+  get notificationAudioEnabled() {
+    return this.notificationAudioUnlocked && this.notificationAudioContext?.state === 'running';
   }
 
   get sortedLocations() {
@@ -124,6 +130,10 @@ export class HomePage {
     void this.tryUnlockNotificationAudio();
   }
 
+  enableNotificationAudio() {
+    void this.tryUnlockNotificationAudio(true).catch(() => { this.notificationAudioUnlocked = false; });
+  }
+
   private async forceUnlockNotificationAudio() {
     await this.tryUnlockNotificationAudio(true);
   }
@@ -139,6 +149,14 @@ export class HomePage {
       if (this.notificationAudioContext.state === 'suspended') {
         await this.notificationAudioContext.resume();
       }
+      if (!this.announcementChimeBuffer && !this.announcementChimeBufferPromise) {
+        this.announcementChimeBufferPromise = fetch(this.announcementChimePath)
+          .then((response) => response.arrayBuffer())
+          .then((data) => this.notificationAudioContext!.decodeAudioData(data))
+          .then((buffer) => { this.announcementChimeBuffer = buffer; })
+          .catch(() => undefined);
+      }
+      await this.announcementChimeBufferPromise;
     }
 
     if ('speechSynthesis' in window) window.speechSynthesis.resume();
@@ -226,6 +244,22 @@ export class HomePage {
     try {
       await this.forceUnlockNotificationAudio();
 
+      if (this.notificationAudioContext?.state === 'running' && this.announcementChimeBuffer) {
+        const context = this.notificationAudioContext;
+        const source = context.createBufferSource();
+        source.buffer = this.announcementChimeBuffer;
+        source.connect(context.destination);
+        await new Promise<void>((resolve) => {
+          const timeoutId = window.setTimeout(resolve, (this.announcementChimeBuffer!.duration + 1) * 1000);
+          source.onended = () => {
+            window.clearTimeout(timeoutId);
+            resolve();
+          };
+          source.start();
+        });
+        return;
+      }
+
       const attemptPlay = async (retryCount = 0): Promise<void> => {
         const chime = new Audio(this.announcementChimePath);
         chime.preload = 'auto';
@@ -233,7 +267,9 @@ export class HomePage {
         chime.currentTime = 0;
 
         await new Promise<void>((resolve) => {
+          let timeoutId: number;
           const cleanup = () => {
+            window.clearTimeout(timeoutId);
             chime.removeEventListener('ended', onEnded);
             chime.removeEventListener('error', onError);
             resolve();
@@ -243,6 +279,7 @@ export class HomePage {
 
           chime.addEventListener('ended', onEnded, { once: true });
           chime.addEventListener('error', onError, { once: true });
+          timeoutId = window.setTimeout(cleanup, 2500);
 
           void chime.play()
             .catch(() => {

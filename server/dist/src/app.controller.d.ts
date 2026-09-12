@@ -150,6 +150,7 @@ export declare class AppController {
             lastName: string;
             nickname: string;
             password: string;
+            phoneNumber: string;
             isAdmin: boolean;
             createdAt: Date;
         };
@@ -181,6 +182,7 @@ export declare class AppController {
             lastName: string;
             nickname: string;
             password: string;
+            phoneNumber: string;
             isAdmin: boolean;
             createdAt: Date;
         };

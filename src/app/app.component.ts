@@ -95,7 +95,7 @@ export class AppComponent implements OnInit {
       }
 
       await new Promise(resolve => setTimeout(resolve, 2000));
-      const destination = this.staffLocator.session ? '/home' : '/sign-in';
+      const destination = this.staffLocator.session ? '/dashboard' : '/sign-in';
       await this.router.navigateByUrl(destination);
       this.showSplash.set(false);
     } catch {

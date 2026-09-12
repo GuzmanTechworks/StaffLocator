@@ -7,17 +7,17 @@ const client_1 = require("@prisma/client");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const prisma = new client_1.PrismaClient();
 async function main() {
-    const administratorPassword = await bcryptjs_1.default.hash('0ffice.IT', 10);
-    const userPassword = await bcryptjs_1.default.hash('0000004457', 10);
+    const administratorPassword = await bcryptjs_1.default.hash('isd.admin', 10);
+    const userPassword = await bcryptjs_1.default.hash('ches', 10);
     await prisma.user.upsert({
         where: { username: 'isd.admin' },
         update: { firstName: 'ISD', lastName: 'Administrator', nickname: 'Admin', password: administratorPassword, isAdmin: true },
         create: { firstName: 'ISD', lastName: 'Administrator', nickname: 'Admin', username: 'isd.admin', password: administratorPassword, isAdmin: true },
     });
     await prisma.user.upsert({
-        where: { username: '0000004457' },
-        update: { firstName: 'Staff', lastName: 'Member', nickname: 'Staff', password: userPassword, isAdmin: false },
-        create: { firstName: 'Staff', lastName: 'Member', nickname: 'Staff', username: '0000004457', password: userPassword, isAdmin: false },
+        where: { username: 'ches' },
+        update: { firstName: 'Aldwin Chester', lastName: 'Guzman', nickname: 'Chester', password: userPassword, isAdmin: false },
+        create: { firstName: 'Aldwin Chester', lastName: 'Guzman', nickname: 'Chester', username: 'ches', password: userPassword, isAdmin: false },
     });
     for (const name of ['Main Office', 'Finance', 'Human Resources', 'IT Help Desk']) {
         await prisma.location.upsert({ where: { name }, update: {}, create: { name } });

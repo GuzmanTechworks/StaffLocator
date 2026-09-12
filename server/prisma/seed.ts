@@ -4,8 +4,8 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
-  const administratorPassword = await bcrypt.hash('0ffice.IT', 10);
-  const userPassword = await bcrypt.hash('0000004457', 10);
+  const administratorPassword = await bcrypt.hash('isd.admin', 10);
+  const userPassword = await bcrypt.hash('ches', 10);
 
   await prisma.user.upsert({
     where: { username: 'isd.admin' },
@@ -14,9 +14,9 @@ async function main() {
   });
 
   await prisma.user.upsert({
-    where: { username: '0000004457' },
-    update: { firstName: 'Staff', lastName: 'Member', nickname: 'Staff', password: userPassword, isAdmin: false },
-    create: { firstName: 'Staff', lastName: 'Member', nickname: 'Staff', username: '0000004457', password: userPassword, isAdmin: false },
+    where: { username: 'ches' },
+    update: { firstName: 'Aldwin Chester', lastName: 'Guzman', nickname: 'Chester', password: userPassword, isAdmin: false },
+    create: { firstName: 'Aldwin Chester', lastName: 'Guzman', nickname: 'Chester', username: 'ches', password: userPassword, isAdmin: false },
   });
 
   for (const name of ['Main Office', 'Finance', 'Human Resources', 'IT Help Desk']) {

@@ -24,7 +24,8 @@
         aria-label="Open navigation"><ion-icon name="menu-outline"></ion-icon></button>
       <div class="page-title">DASHBOARD</div>
       <div *ngIf="session; else signInAction" class="user-status"><strong>{{ currentUsername }}</strong><span>{{
-          currentRole }}</span></div><ng-template #signInAction>
+          currentRole }}</span></div><button class="sign-in-button" *ngIf="session?.user?.isAdmin && !notificationAudioEnabled"
+        type="button" (click)="enableNotificationAudio()">Enable notifications</button><ng-template #signInAction>
         <div class="header-actions"><a class="sign-in-button" routerLink="/sign-in"><ion-icon
               name="log-in-outline"></ion-icon>SIGN IN</a><a class="sign-in-button" href="assets/ISDStaffLocator.apk"
             target="_blank" rel="noopener noreferrer"><ion-icon name="download-outline"></ion-icon>DOWNLOAD APK</a>

@@ -131,6 +131,7 @@ export declare class AppService {
             lastName: string;
             nickname: string;
             password: string;
+            phoneNumber: string;
             isAdmin: boolean;
             createdAt: Date;
         };
@@ -159,6 +160,7 @@ export declare class AppService {
             lastName: string;
             nickname: string;
             password: string;
+            phoneNumber: string;
             isAdmin: boolean;
             createdAt: Date;
         };

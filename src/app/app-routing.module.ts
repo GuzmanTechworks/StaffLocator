@@ -12,6 +12,12 @@ const authGuard: CanActivateFn = () => {
   return inject(Router).createUrlTree(['/sign-in']);
 };
 
+const guestGuard: CanActivateFn = () => {
+  const staffLocator = inject(StaffLocatorService);
+
+  return staffLocator.session ? inject(Router).createUrlTree(['/dashboard']) : true;
+};
+
 const routes: Routes = [
   {
     path: 'home',
@@ -40,6 +46,7 @@ const routes: Routes = [
   },
   {
     path: 'sign-in',
+    canActivate: [guestGuard],
     loadChildren: () => import('./sign-in/sign-in.module').then( m => m.SignInPageModule)
   },
   {
