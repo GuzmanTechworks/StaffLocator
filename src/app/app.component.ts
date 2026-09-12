@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { App as CapacitorApp } from '@capacitor/app';
-import { Capacitor, registerPlugin } from '@capacitor/core';
+import { Capacitor } from '@capacitor/core';
 import { firstValueFrom, timeout } from 'rxjs';
 import { environment } from '../environments/environment';
 import { StaffLocatorService } from './core/staff-locator.service';
@@ -24,14 +24,6 @@ import {
   timeOutline,
 } from 'ionicons/icons';
 
-interface AppUpdaterPlugin {
-  startDownload(options: { url: string }): Promise<{ downloadId: number }>;
-  getDownloadProgress(options: { downloadId: number }): Promise<{ progress: number; status: string; isComplete: boolean; isFailed: boolean }>;
-  installDownloadedApk(options: { downloadId: number }): Promise<void>;
-}
-
-const AppUpdater = registerPlugin<AppUpdaterPlugin>('AppUpdater');
-
 @Component({
   selector: 'app-root',
   templateUrl: 'app.component.html',
@@ -44,12 +36,9 @@ export class AppComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly staffLocator = inject(StaffLocatorService);
   showSplash = signal(Capacitor.isNativePlatform());
-  connectionMessage = signal('Checking server connection...');
+  connectionMessage = signal('Checking connection to server');
   updateAvailable = signal(false);
   updateDownloadUrl = signal('');
-  updatePhase = signal<'checking' | 'download' | 'install' | 'complete' | 'error'>('checking');
-  downloadProgress = signal(0);
-  installProgress = signal(0);
 
   constructor() {
     addIcons({
@@ -89,7 +78,7 @@ export class AppComponent implements OnInit {
     try {
       await firstValueFrom(this.http.get(`${environment.apiUrl}/health`).pipe(timeout(10000)));
       await new Promise(resolve => setTimeout(resolve, 2000));
-      this.connectionMessage.set('Checking for newer application version...');
+      this.connectionMessage.set('Checking for new application updates..');
 
       const [appInfo, update] = await Promise.all([
         CapacitorApp.getInfo(),
@@ -131,63 +120,11 @@ export class AppComponent implements OnInit {
   }
 
   downloadUpdate(): void {
-    if (!Capacitor.isNativePlatform()) {
-      window.location.assign(this.updateDownloadUrl());
-      return;
-    }
-
-    this.updateAvailable.set(false);
-    this.updatePhase.set('download');
-    this.connectionMessage.set('Downloading update...');
-    this.downloadProgress.set(0);
-    this.installProgress.set(0);
-
-    void this.startNativeDownload();
+    window.location.assign(this.updateDownloadUrl());
   }
 
   cancelUpdate(): void {
     void CapacitorApp.exitApp();
-  }
-
-  private async startNativeDownload(): Promise<void> {
-    try {
-      const result = await AppUpdater.startDownload({ url: this.updateDownloadUrl() });
-
-      await this.pollDownloadProgress(result.downloadId);
-
-      this.updatePhase.set('install');
-      this.connectionMessage.set('Installing update...');
-      this.installProgress.set(0);
-
-      await AppUpdater.installDownloadedApk({ downloadId: result.downloadId });
-
-      this.connectionMessage.set('Restarting app...');
-      this.updatePhase.set('complete');
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown update error.';
-      this.connectionMessage.set(`Update failed: ${message}`);
-      this.updatePhase.set('error');
-      this.updateAvailable.set(false);
-    }
-  }
-
-  private async pollDownloadProgress(downloadId: number): Promise<void> {
-    while (true) {
-      const response = await AppUpdater.getDownloadProgress({ downloadId });
-
-      if (response.isFailed) {
-        throw new Error('Download failed.');
-      }
-
-      this.downloadProgress.set(Math.max(0, Math.min(100, response.progress)));
-      this.connectionMessage.set('Downloading update...');
-
-      if (response.isComplete) {
-        break;
-      }
-
-      await new Promise((resolve) => setTimeout(resolve, 500));
-    }
   }
 
   private resolveDownloadUrl(downloadUrl: string): string {
@@ -195,7 +132,7 @@ export class AppComponent implements OnInit {
       return downloadUrl;
     }
 
-    const appUrl = environment.apiUrl.replace(/\/api\/?$/, '/');
-    return new URL(downloadUrl || 'assets/ISDStaffLocator.apk', appUrl).toString();
+    // For relative paths, append to the API URL to preserve the /api path
+    return new URL(downloadUrl || 'assets/ISDStaffLocator.apk', environment.apiUrl).toString();
   }
 }

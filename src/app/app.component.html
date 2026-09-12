@@ -3,35 +3,32 @@
   @if (showSplash()) {
   <div class="app-splash">
     <div class="app-splash-content">
+      <div class="splash-glow" aria-hidden="true"></div>
 
-      <img
-        class="splash-logo"
-        src="assets/logo/cagayan.png"
-        alt="Cagayan Provincial Government Logo"
-      >
+      <div class="splash-brand">
+        <div class="splash-logo-wrap">
+          <img
+            class="splash-logo"
+            src="assets/logo/cagayan.png"
+            alt="Cagayan Provincial Government Logo"
+          >
+        </div>
+
+        <div class="splash-brand-text">
+          <span class="splash-kicker">Provincial Government of Cagayan</span>
+          <span class="splash-app-name">Staff Locator</span>
+        </div>
+      </div>
 
       <div class="splash-text-block">
-        <p class="splash-title splash-black">
-          Provincial Government of Cagayan
+        <p class="splash-title">Information Systems Division</p>
+        <p class="splash-subtitle">
+          Secure access to staff and office services
         </p>
 
-        <p class="splash-title splash-black">
-          Information Systems Division
-        </p>
-
-        @if (!connectionMessage().includes('Failed') && !updateAvailable() && updatePhase() === 'checking') {
-        <div class="splash-loading" role="progressbar" aria-label="Loading"></div>
-        }
-
-        @if (updatePhase() === 'download') {
-        <div class="update-progress" aria-label="Download progress">
-          <div class="update-progress-bar" [style.width.%]="downloadProgress()"></div>
-        </div>
-        }
-
-        @if (updatePhase() === 'install') {
-        <div class="update-progress" aria-label="Install progress">
-          <div class="update-progress-bar" [style.width.%]="installProgress()"></div>
+        @if (!connectionMessage().includes('Failed') && !updateAvailable()) {
+        <div class="splash-loading" role="progressbar" aria-label="Loading">
+          <span class="splash-loading-fill"></span>
         </div>
         }
 
