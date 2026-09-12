@@ -18,6 +18,7 @@
   border-radius: 50%;
   filter: blur(18px);
   opacity: 0.8;
+  pointer-events: none;
 }
 
 .app-splash::before {
@@ -231,6 +232,43 @@
   line-height: 1.45;
 }
 
+.update-popover {
+  position: relative;
+  z-index: 10;
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+}
+
+.update-popover-icon {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+.update-kicker {
+  margin: 0 0 6px 0;
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #666;
+}
+
+.update-popover h1 {
+  margin: 0 0 8px 0;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #000;
+}
+
+.update-message {
+  margin: 0 0 16px 0;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: #555;
+}
+
 .update-actions {
   display: grid;
   gap: 9px;
@@ -244,12 +282,22 @@
   font-size: 0.88rem;
   font-weight: 800;
   cursor: pointer;
+  transition: all 0.2s ease;
+  pointer-events: auto;
+}
+
+.update-button:active {
+  transform: scale(0.98);
 }
 
 .update-primary {
   background: #1f9d4a;
   color: #ffffff;
   box-shadow: 0 7px 16px rgba(31, 157, 74, 0.22);
+}
+
+.update-primary:active {
+  box-shadow: 0 4px 10px rgba(31, 157, 74, 0.18);
 }
 
 .update-secondary {
