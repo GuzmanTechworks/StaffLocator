@@ -43,6 +43,7 @@ export class HomePage {
   private announcementChimeBufferPromise?: Promise<void>;
   private readonly announcedGroupEvents = new Set<string>();
   private announcementQueue: Promise<void> = Promise.resolve();
+  private pendingTimeInAnnouncementUsernames: string[] = [];
   private dashboardEventsSubscription?: Subscription;
 
   constructor(
@@ -359,8 +360,38 @@ export class HomePage {
     });
   }
 
+  private formatAnnouncementNames(users: DashboardEvent['users']) {
+    const names = users.map((user) => this.announcementName(user));
+    if (names.length === 2) return `${names[0]} and ${names[1]}`;
+    if (names.length > 2) return `${names.slice(0, -1).join(', ')}, and ${names[names.length - 1]}`;
+    return names[0] ?? '';
+  }
+
+  private async announceSelectedTimeIn(users: DashboardEvent['users'], destination: string) {
+    if (!users.length) return;
+    this.pendingTimeInAnnouncementUsernames = users.map((user) => user.username);
+    try {
+      const name = this.formatAnnouncementNames(users);
+      const movement = `went from ${this.formatAnnouncementDestination(destination)}`;
+      await this.forceUnlockNotificationAudio();
+      await this.playAnnouncementChime();
+      await this.speakAnnouncement(`${name} timed in at ${this.formatAnnouncementTime()}, ${movement}.`);
+    } finally {
+      this.pendingTimeInAnnouncementUsernames = [];
+    }
+  }
+
   private async announceDashboardEvent(event: DashboardEvent) {
-    const namesForAnnouncement = event.type === 'timein' ? event.users.slice(-1) : event.users;
+    if (event.type === 'timein' && this.pendingTimeInAnnouncementUsernames.length > 0) {
+      const pendingSet = new Set(this.pendingTimeInAnnouncementUsernames);
+      const eventUsernames = event.users.map((user) => user.username);
+      const isSameSelection = eventUsernames.length === pendingSet.size && eventUsernames.every((username) => pendingSet.has(username));
+      if (!isSameSelection) return;
+      this.pendingTimeInAnnouncementUsernames = [];
+      return;
+    }
+
+    const namesForAnnouncement = event.users;
     const eventKey = [
       event.type,
       event.groupId ?? 'single',
@@ -375,8 +406,7 @@ export class HomePage {
     const task = async () => {
       if (!this.session?.user?.isAdmin) return;
 
-      const names = namesForAnnouncement.map((user) => this.announcementName(user));
-      const name = names.length > 1 ? `${names.slice(0, -1).join(', ')}, and ${names[names.length - 1]}` : names[0];
+      const name = this.formatAnnouncementNames(namesForAnnouncement);
       const action = event.type === 'timeout' ? 'timed out' : 'timed in';
       const destination = this.formatAnnouncementDestination(event.destination);
       const movement = event.type === 'timeout'
@@ -424,6 +454,18 @@ export class HomePage {
   }
 
   timeInSelected() {
+    const selectedVisits = this.dashboard.activeVisits.filter((visit) => this.selectedReturnVisitIds.includes(visit.id));
+    const selectedUsers = selectedVisits.map((visit) => ({
+      firstName: visit.user.firstName,
+      lastName: visit.user.lastName,
+      nickname: visit.user.nickname,
+      username: visit.user.username,
+    }));
+
+    if (selectedUsers.length > 0) {
+      void this.announceSelectedTimeIn(selectedUsers, selectedVisits[0].destination);
+    }
+
     this.selectedReturnVisitIds.forEach((visitId) => {
       this.staffLocator.timeIn(visitId, undefined, this.remarks.trim()).subscribe({
         next: () => this.refresh(),

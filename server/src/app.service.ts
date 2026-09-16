@@ -116,14 +116,12 @@ export class AppService {
     const timeInDate = timedInAt ? new Date(timedInAt) : new Date();
     if (Number.isNaN(timeInDate.getTime())) throw new BadRequestException('Invalid time in.');
     const visit = await this.prisma.visit.update({ where: { id: visitId }, data: { timedInAt: timeInDate, remarks: remarks.trim().slice(0, 255) }, include: { user: true, location: true } });
+    const groupVisits = visit.groupId
+      ? await this.prisma.visit.findMany({ where: { groupId: visit.groupId }, include: { user: true }, orderBy: { id: 'asc' } })
+      : [visit];
     this.dashboardEvents.next({
       type: 'timein',
-      users: [{
-        firstName: visit.user.firstName,
-        lastName: visit.user.lastName,
-        nickname: visit.user.nickname,
-        username: visit.user.username,
-      }],
+      users: groupVisits.map((item) => ({ firstName: item.user.firstName, lastName: item.user.lastName, nickname: item.user.nickname, username: item.user.username })),
       groupId: visit.groupId,
       destination: visit.destination,
       purpose: visit.purpose,
