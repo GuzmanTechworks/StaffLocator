@@ -360,12 +360,13 @@ export class HomePage {
   }
 
   private async announceDashboardEvent(event: DashboardEvent) {
+    const namesForAnnouncement = event.type === 'timein' ? event.users.slice(-1) : event.users;
     const eventKey = [
       event.type,
       event.groupId ?? 'single',
       event.destination,
       event.purpose,
-      event.users.map((user) => user.username).join('|'),
+      namesForAnnouncement.map((user) => user.username).join('|'),
     ].join(':');
 
     if (this.announcedGroupEvents.has(eventKey)) return;
@@ -374,13 +375,13 @@ export class HomePage {
     const task = async () => {
       if (!this.session?.user?.isAdmin) return;
 
-      const names = event.users.map((user) => this.announcementName(user));
+      const names = namesForAnnouncement.map((user) => this.announcementName(user));
       const name = names.length > 1 ? `${names.slice(0, -1).join(', ')}, and ${names[names.length - 1]}` : names[0];
       const action = event.type === 'timeout' ? 'timed out' : 'timed in';
       const destination = this.formatAnnouncementDestination(event.destination);
       const movement = event.type === 'timeout'
         ? `going to ${destination} for ${event.purpose}`
-        : `went to ${destination}`;
+        : `went from ${destination}`;
 
       await this.forceUnlockNotificationAudio();
       await this.playAnnouncementChime();
