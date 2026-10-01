@@ -1,26 +1,24 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { HttpClientModule } from '@angular/common/http';
-import { IonicModule } from '@ionic/angular/lazy';
-import { FormsModule } from '@angular/forms';
+import { HomePage } from './home.page';
 
-import { DashboardPage } from '../dashboard/dashboard.page';
+describe('HomePage logout', () => {
+  let component: HomePage;
+  let staffLocator: { session: unknown };
+  let router: { navigateByUrl: ReturnType<typeof vi.fn> };
 
-describe('DashboardPage', () => {
-  let component: DashboardPage;
-  let fixture: ComponentFixture<DashboardPage>;
-
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      declarations: [DashboardPage],
-      imports: [FormsModule, HttpClientModule, IonicModule.forRoot()]
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(DashboardPage);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
+  beforeEach(() => {
+    staffLocator = { session: { accessToken: 'session-token' } };
+    router = { navigateByUrl: vi.fn().mockResolvedValue(true) };
+    component = new HomePage(
+      staffLocator as any,
+      { markForCheck: () => undefined } as any,
+      router as any,
+    );
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
+  it('clears the local session only when logging out', () => {
+    component.logout();
+
+    expect(staffLocator.session).toBeNull();
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/sign-in');
   });
 });

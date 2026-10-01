@@ -17,7 +17,7 @@ let AppModule = class AppModule {
 exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
-        imports: [jwt_1.JwtModule.register({ secret: process.env.JWT_SECRET ?? 'change-this-secret', signOptions: { expiresIn: '8h' } })],
+        imports: [jwt_1.JwtModule.register({ secret: process.env.JWT_SECRET ?? 'change-this-secret' })],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService, prisma_service_1.PrismaService],
     })

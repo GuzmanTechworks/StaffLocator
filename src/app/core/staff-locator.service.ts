@@ -55,10 +55,6 @@ export class StaffLocatorService {
     else localStorage.removeItem('staff-locator-biometric-enabled');
   }
 
-  expireSession() {
-    this.session = null;
-  }
-
   private options() {
     return { headers: new HttpHeaders({ Authorization: `Bearer ${this.session?.accessToken ?? ''}` }) };
   }

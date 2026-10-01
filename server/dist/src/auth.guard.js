@@ -22,7 +22,7 @@ let AuthGuard = class AuthGuard {
         if (!token)
             throw new common_1.UnauthorizedException('Login required.');
         try {
-            request.user = await this.jwt.verifyAsync(token);
+            request.user = await this.jwt.verifyAsync(token, { ignoreExpiration: true });
             return true;
         }
         catch {

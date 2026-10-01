@@ -5,7 +5,7 @@ import { AppService } from './app.service';
 import { PrismaService } from './prisma.service';
 
 @Module({
-  imports: [JwtModule.register({ secret: process.env.JWT_SECRET ?? 'change-this-secret', signOptions: { expiresIn: '8h' } })],
+  imports: [JwtModule.register({ secret: process.env.JWT_SECRET ?? 'change-this-secret' })],
   controllers: [AppController],
   providers: [AppService, PrismaService],
 })
